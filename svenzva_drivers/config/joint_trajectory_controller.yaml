@@ -1,6 +1,6 @@
 f_arm_controller:
     controller:
-        package: dynamixel_controllers
+        package: mx_controllers
         module: joint_trajectory_action_controller
         type: JointTrajectoryActionController
     joint_trajectory_action_node:

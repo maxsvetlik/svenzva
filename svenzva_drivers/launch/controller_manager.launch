@@ -1,16 +1,16 @@
 <launch>
-    <node name="dynamixel_manager" pkg="dynamixel_controllers" type="controller_manager.py" required="true" output="screen">
+    <node name="dynamixel_manager" pkg="mx_controllers" type="controller_manager.py" required="true" output="screen">
         <rosparam>
             namespace: dxl_manager
             serial_ports:
                 pan_tilt_port:
-                    port_name: "/dev/ttyUSB0"
+                    port_name: "/dev/ttyACM0"
                     baud_rate: 57600
-                    min_motor_id: 0
-                    max_motor_id: 10
-                    update_rate: 40
+                    min_motor_id: 1
+                    max_motor_id: 6
+                    update_rate: 20
         </rosparam>
     </node>
 
-    <include file="$(find svenzva_drivers)/launch/start_tilt_controller.launch"/>
+    <include file="$(find svenzva_drivers)/launch/arm_controller.launch"/>
 </launch>
