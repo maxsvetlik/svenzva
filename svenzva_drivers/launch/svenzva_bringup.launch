@@ -1,22 +1,23 @@
 <launch>
 
+    <arg name="data_frequency" default="10"/>
+    <arg name="namespace" value="mayan"/>
+
     <!-- Set the joint names to be aggregated by the joint state publisher -->
-    <rosparam param="dynamixels">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 ]</rosparam>
+    <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 ]</rosparam>
 
     <!-- Load the URDF/Xacro model of our robot -->
     <param name="robot_description" textfile="$(find svenzva_description)/robots/svenzva_arm.urdf" />
 
-    <node name="dynamixel_joint_state_publisher" type="dynamixel_joint_state_publisher.py" pkg="svenzva_drivers" output="screen"></node>
-
-    <!-- Publish the robot state 
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher">
-        <param name="publish_frequency" value="20.0"/>
+    <node name="joint_state_publisher" type="joint_state_publisher.py" pkg="svenzva_drivers" output="screen">
+        <param name="rate" value="$(arg data_frequency)"/>
+        <param name="arm_namespace" value="$(arg namespace)"/>
     </node>
-    
-     Publish a static transform between the robot base and the world frame 
-    <node pkg="tf" type="static_transform_publisher" name="world_base_broadcaster" args="0 0 0.0325 0 0 0 /world /base_link 100" /> -->
 
-    <!-- Launch dynamixel controllers -->
-    <include file="$(find svenzva_drivers)/launch/controller_manager.launch"></include>
+    <!-- Start the arm driver -->
+    <node name="mayan_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
+        <param name="arm_namespace" value="$(arg namespace)"/>
+        <param name="update_rate" value="$(arg data_frequency)"/>
+    </node>
 
 </launch>

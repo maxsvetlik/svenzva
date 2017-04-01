@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """
+    joint_state_publisher              - Version 2.0 2017-3-18
     dynamixel_joint_state_publisher.py - Version 1.0 2010-12-28
 
     Publish the dynamixel_controller joint states on the /joint_states topic
@@ -21,11 +22,11 @@
     http://www.gnu.org/licenses/gpl.html
 """
 
-import roslib;
+import roslib
 import rospy
 
 from sensor_msgs.msg import JointState as JointStatePR2
-from dynamixel_msgs.msg import JointState as JointStateDynamixel
+from svenzva_msgs.msg import MotorStateList
 
 class JointStateMessage():
     def __init__(self, name, position, velocity, effort):
@@ -36,39 +37,29 @@ class JointStateMessage():
 
 class JointStatePublisher():
     def __init__(self):
-        rospy.init_node('dynamixel_joint_state_publisher', anonymous=True)
+        rospy.init_node('joint_state_publisher', anonymous=True)
 
         rate = rospy.get_param('~rate', 20)
         r = rospy.Rate(rate)
+        namespace = rospy.get_param('~arm_namespace', '')
+        self.joints = rospy.get_param('joint_names', '')
 
-        dynamixels = rospy.get_param('dynamixels', '')
- 	print(dynamixels)
-        self.joints = list()
-
-        self.servos = list()
-        self.controllers = list()
-        self.joint_states = dict({})
-
-        for joint in sorted(dynamixels):
-            #controller = joint.replace("_joint", "") + "_controller"
-            self.joint_states[joint] = JointStateMessage(joint, 0.0, 0.0, 0.0)
-            self.controllers.append(joint)
+        self.motor_states = []
 
         # Start controller state subscribers
-        [rospy.Subscriber(c + '/state', JointStateDynamixel, self.controller_state_handler) for c in self.controllers]
+        rospy.Subscriber(namespace + '/motor_states', MotorStateList, self.motor_state_cb)
 
         # Start publisher
-        self.joint_states_pub = rospy.Publisher('/joint_states', JointStatePR2)
+        self.joint_states_pub = rospy.Publisher('/joint_states', JointStatePR2, queue_size=1)
 
-        rospy.loginfo("Starting Dynamixel Joint State Publisher at " + str(rate) + "Hz")
+        rospy.loginfo("Starting Joint State Publisher at " + str(rate) + "Hz")
 
         while not rospy.is_shutdown():
             self.publish_joint_states()
             r.sleep()
 
-    def controller_state_handler(self, msg):
-        js = JointStateMessage(msg.name, msg.current_pos, msg.velocity, msg.load)
-        self.joint_states[msg.name] = js
+    def motor_state_cb(self, msg):
+        self.motor_states = msg.motor_states
 
     def publish_joint_states(self):
         # Construct message & publish joint states
@@ -78,11 +69,11 @@ class JointStatePublisher():
         msg.velocity = []
         msg.effort = []
 
-        for joint in sorted(self.joint_states.values(), key = lambda v : v.name):
-            msg.name.append(joint.name)
+        for i, joint in enumerate(self.motor_states):
+            msg.name.append(self.joints[i])
             msg.position.append(joint.position)
-            msg.velocity.append(joint.velocity)
-            msg.effort.append(joint.effort)
+            msg.velocity.append(joint.speed)
+            msg.effort.append(joint.load)
 
         msg.header.stamp = rospy.Time.now()
         self.joint_states_pub.publish(msg)

@@ -5,6 +5,7 @@ joint_1:
         type: JointPositionController
     joint_name: joint_1
     joint_speed: 0.2
+    gear_ratio: 1
     motor:
         id: 1
         init: 0
@@ -17,6 +18,7 @@ joint_2:
         type: JointPositionController
     joint_name: joint_2
     joint_speed: 0.2
+    gear_ratio: 6
     motor:
         id: 2
         init: 0
@@ -29,6 +31,7 @@ joint_3:
         type: JointPositionController
     joint_name: joint_3
     joint_speed: 0.3
+    gear_ratio: 6
     motor:
         id: 3
         init: 0
@@ -41,6 +44,7 @@ joint_4:
         type: JointPositionController
     joint_name: joint_4
     joint_speed: 0.2
+    gear_ratio: 4
     motor:
         id: 4
         init: 0
@@ -53,6 +57,7 @@ joint_5:
         type: JointPositionController
     joint_name: joint_5
     joint_speed: 0.2
+    gear_ratio: 4
     motor:
         id: 5
         init: 0
@@ -65,6 +70,7 @@ joint_6:
         type: JointPositionController
     joint_name: joint_6
     joint_speed: 0.2
+    gear_ratio: 1
     motor:
         id: 6
         init: 2048
