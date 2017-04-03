@@ -6,6 +6,7 @@
 #include <kdl/frames.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainidsolver_recursive_newton_euler.hpp>
+#include <kdl/chainiksolvervel_pinv.hpp>
 
 #include <sensor_msgs/JointState.h>
 
@@ -23,6 +24,39 @@ void js_cb(const sensor_msgs::JointState::ConstPtr& msg){
     joint_states = *msg;
 }
 
+/*
+ * Inverse velocity kinematics
+ */
+
+void feel_velocity(){
+    
+    for (unsigned int i = 0; i < mNumJnts; i++) {
+      jnt_q(i) = 0.0;
+      jnt_qd(i) = 0.0;
+      jnt_qdd(i) = 0.0;
+    }
+    jnt_q(1) = 0.5;
+    jnt_q(2) = 0.72;
+    KDL::ChainIkSolverVel_pinv vel_solver = KDL::ChainIkSolverVel_pinv(chain,0.00001,150);
+
+    //Find an output joint velocity qdot_out, given a starting joint pose q_init and a desired cartesian velocity v_in 
+    KDL::Vector trans(0.01, 0.0, 0.0);
+    KDL::Vector rot(0, 0, 0);
+    KDL::Twist vel(trans, rot);
+    KDL::JntArray qdot_out(mNumJnts);
+    vel_solver.CartToJnt(  jnt_q, vel, qdot_out);  
+    ROS_INFO("Here3");
+
+    for( int i=0; i < mNumJnts; i++){
+        ROS_INFO("Joint %d: %f", i+1, qdot_out(i));
+    }
+
+}
+
+
+/*
+ * tau given q and the system dynamics
+ */
 void feel_efforts(ros::Publisher tau_pub){
     KDL::Wrenches jnt_wrenches;
     for (unsigned int i = 0; i < mNumJnts; i++) {
@@ -70,8 +104,8 @@ int main(int argc, char** argv){
     ros::NodeHandle n;
     int rate = 10;
     //n.param<int>("~publish_rate", rate, 1);
-    ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
-    ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/mayan/model_efforts/", 1);
+    //ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
+    //ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/mayan/model_efforts/", 1);
     ros::Rate update_rate = ros::Rate(rate);
     std::string path = ros::package::getPath("svenzva_description");
     std::string full_path = path + "/robots/svenzva_arm.urdf";
@@ -86,14 +120,15 @@ int main(int argc, char** argv){
     my_tree.getChain("base_link", "link_6", chain);
     ROS_INFO("Kinematic chain expects %d joints", chain.getNrOfJoints());
 
-    ros::spinOnce();
-    ros::Rate(1).sleep();
-    update_rate.sleep();
-    while(ros::ok()){
+    //ros::spinOnce();
+    //ros::Rate(1).sleep();
+    //update_rate.sleep();
+    /*while(ros::ok()){
         ros::spinOnce();
         feel_efforts(tau_pub);
         update_rate.sleep();
-    }
+    }*/
+    feel_velocity();
 
     return 0;
 
