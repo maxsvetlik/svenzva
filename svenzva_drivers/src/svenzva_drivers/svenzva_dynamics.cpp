@@ -105,7 +105,7 @@ int main(int argc, char** argv){
     int rate = 10;
     //n.param<int>("~publish_rate", rate, 1);
     //ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
-    //ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/mayan/model_efforts/", 1);
+    //ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/revel/model_efforts/", 1);
     ros::Rate update_rate = ros::Rate(rate);
     std::string path = ros::package::getPath("svenzva_description");
     std::string full_path = path + "/robots/svenzva_arm.urdf";
