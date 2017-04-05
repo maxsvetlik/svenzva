@@ -14,6 +14,7 @@ from threading import Thread
 from mx_driver import dynamixel_io
 from mx_driver.dynamixel_const import *
 from svenzva_drivers.joint_trajectory_action_controller import *
+from svenzva_drivers.revel_gripper_server import *
 from std_msgs.msg import Bool
 from dynamixel_controllers.srv import *
 from svenzva_drivers.msg import *
@@ -28,10 +29,10 @@ class SvenzvaDriver:
     #adapted from controller_manager.py [LINK], 3/17/17
     def __init__(self,
                  port_name='/dev/ttyACM0',
-                 port_namespace='mayan',
+                 port_namespace='revel',
                  baud_rate='115200',
                  min_motor_id=1,
-                 max_motor_id=6,
+                 max_motor_id=7,
                  update_rate=10,
                  diagnostics_rate=0,
                  error_level_temp=75,
@@ -56,7 +57,7 @@ class SvenzvaDriver:
         self.current_state = MotorStateList()
         self.num_ping_retries = 5
 
-        self.model_efforts_sub = rospy.Subscriber('/mayan/model_efforts', JointState, self.model_effort_cb)
+        self.model_efforts_sub = rospy.Subscriber('/revel/model_efforts', JointState, self.model_effort_cb)
 
         self.motor_states_pub = rospy.Publisher('%s/motor_states' % self.port_namespace, MotorStateList,         queue_size=1)
         rospy.on_shutdown(self.disconnect)
@@ -66,7 +67,6 @@ class SvenzvaDriver:
         self.initialze_motor_states()
 
         self.start_modules()
-
 
     #adapted from serial_proxy.py [LINK], 3/17/17
     def connect(self, port_name, baud_rate, readback_echo):
@@ -117,7 +117,7 @@ class SvenzvaDriver:
         debug_polling_rate = False
         rates = deque([float(self.update_rate)]*num_events, maxlen=num_events)
         last_time = rospy.Time.now()
-        gr = [1,6,6,4,4,1]
+        gr = [4,6,6,4,4,1,1]
         rate = rospy.Rate(self.update_rate)
         id_list = range(self.min_motor_id, self.max_motor_id+1)
         rad_per_tick = 6.2831853 / 4096.0
@@ -173,9 +173,16 @@ class SvenzvaDriver:
 
 
     def start_modules(self):
-        #jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
-        #rospy.sleep(1.0)
-        #jtac.start()
+        jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
+        rospy.sleep(1.0)
+        jtac.start()
+
+        action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
+        action.start()
+
+        gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
+        gripper_server.start()
+
         """
         Svenzva.SvenzvaPoseActionServer pose_server(comm, nh, kinova_robotType);
         Svenzva.SvenzvaAnglesActionServer angles_server(comm, nh);
@@ -199,20 +206,38 @@ class SvenzvaDriver:
     Initialize internal motor parameters that are reset when powered down.
     Enables torque mode.
     """
+    #NOTE: Due to dynamixel limitations, initial encoder values must be [-4096, 4096]
+    #otherwise, the motor_states will be inaccurate
     def initialze_motor_states(self):
-        self.dxl_io.set_operation_mode(5, 0)
-        rospy.sleep(0.1)
+        #rospy.sleep(0.1)
         #self.dxl_io.set_torque_enabled(5, 1)
         #self.dxl_io.set_goal_current(5, 0)
 
-        for i in range(1,7):
+        for i in range(self.min_motor_id, self.max_motor_id + 1):
             self.dxl_io.set_torque_enabled(i, 1)
-            #self.dxl_io.set_mode(i, 0)
+            #self.dxl_io.set_operation_mode(i, 4)
             #self.dxl_io.set_position_p_gain(i, 6048)
             #self.dxl_io.set_position_i_gain(i, 64)
-            self.dxl_io.set_acceleration_profile(i, 20)
-            self.dxl_io.set_velocity_profile(i, 200)
+            self.dxl_io.set_acceleration_profile(i, 15)
+            self.dxl_io.set_velocity_profile(i, 150)
             rospy.sleep(0.1)
+    """
+    Given an array of joint positions (in radians), send request to individual servos
+    TODO: Check if enought joint positions
+          Check if motors are in joint mode and not wheel mode
+    """
+    def fkine_action(self, data):
+        traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
+        traj_client.wait_for_server()
+        goal = FollowJointTrajectoryGoal()
+        goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
+        point = JointTrajectoryPoint()
+        point.positions = data.positions
+        point.time_from_start = rospy.Duration(5.0)
+        goal.trajectory.points.append(point)
+        traj_client.send_goal_and_wait(goal)
+
+
     @staticmethod
     def rad_to_raw(angle):
         #return int(rouna(angle * encoder_ticks_per_rad))
@@ -232,25 +257,6 @@ class SvenzvaDriver:
     @staticmethod
     def spd_raw_to_rad(vel):
         return vel * RPM_PER_TICK * RPM_TO_RADSEC
-
-"""
-Given an array of joint positions (in radians), send request to individual servos
-TODO: Check if enought joint positions
-      Check if motors are in joint mode and not wheel mode
-"""
-def fkine_action(data):
-
-    traj_client = actionlib.SimpleActionClient('/f_arm_controller/follow_joint_trajectory', FollowJointTrajectoryAction)
-    traj_client.wait_for_server()
-    rospy.loginfo("Found Trajectory action server")
-
-    goal = FollowJointTrajectoryGoal()
-    goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
-    point = JointTrajectoryPoint()
-    point.positions = data.positions
-    point.time_from_start = rospy.Duration(5.0)
-    goal.trajectory.points.append(point)
-    traj_client.send_goal_and_wait(goal)
 
 def home_arm(data):
     # load the yaml file that specifies the home position

@@ -1,10 +1,10 @@
 <launch>
 
     <arg name="data_frequency" default="10"/>
-    <arg name="namespace" value="mayan"/>
+    <arg name="namespace" value="revel"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->
-    <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 ]</rosparam>
+    <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7 ]</rosparam>
 
     <!-- Load the URDF/Xacro model of our robot -->
     <param name="robot_description" textfile="$(find svenzva_description)/robots/svenzva_arm.urdf" />
@@ -15,7 +15,7 @@
     </node>
 
     <!-- Start the arm driver -->
-    <node name="mayan_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
+    <node name="revel_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
         <param name="arm_namespace" value="$(arg namespace)"/>
         <param name="update_rate" value="$(arg data_frequency)"/>
     </node>
