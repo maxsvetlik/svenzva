@@ -27,7 +27,7 @@
       <material
         name="">
         <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+          rgba="0.3 0.3 0.3 1" />
       </material>
     </visual>
     <collision>
@@ -92,7 +92,7 @@
     <child
       link="link_1" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 0 -1" />
   </joint>
   <link
     name="link_2">
@@ -146,7 +146,7 @@
     <child
       link="link_2" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 0 -1" />
   </joint>
   <link
     name="link_3">
@@ -308,7 +308,7 @@
     <child
       link="link_5" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 0 -1" />
   </joint>
   <link
     name="link_6">
@@ -337,7 +337,7 @@
       <material
         name="">
         <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+          rgba="0.3 0.3 0.3 1" />
       </material>
     </visual>
     <collision>
@@ -391,7 +391,7 @@
       <material
         name="">
         <color
-          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+          rgba="0.3 0.3 0.3 1" />
       </material>
     </visual>
     <collision>
@@ -406,7 +406,7 @@
   </link>
   <joint
     name="joint_7"
-    type="prismatic">
+    type="fixed">
     <limit lower="-0.05" upper="0.05" velocity="1.0" effort="5"/>
     <origin
       xyz="0 0 -0.0573569998840002"
