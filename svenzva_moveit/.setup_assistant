@@ -5,4 +5,6 @@ moveit_setup_assistant_config:
   SRDF:
     relative_path: config/svenzva_arm.srdf
   CONFIG:
-    generated_timestamp: 1482900499
+    author_name: Max Svetlik
+    author_email: max@svenzva.com
+    generated_timestamp: 1491106649

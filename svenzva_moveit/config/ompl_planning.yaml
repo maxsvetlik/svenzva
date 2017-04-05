@@ -53,7 +53,6 @@ planner_configs:
   PRMstarkConfigDefault:
     type: geometric::PRMstar
 svenzva_arm:
-  default_planner_config: RRTConnectkConfigDefault
   planner_configs:
     - SBLkConfigDefault
     - ESTkConfigDefault
