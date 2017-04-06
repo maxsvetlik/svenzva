@@ -1,0 +1,12 @@
+#goal definition
+uint8 CLOSE=0
+uint8 OPEN=1
+
+uint8 target_action #options: 0, 1
+int32  target_current #the absolute value of desired torque in mA
+---
+#result definition
+bool success
+---
+#feedback
+string action

@@ -25,11 +25,6 @@ catkin_python_setup()
     #    ${orocos_kdl_LIBRARY_DIRS} NO_DEFAULT_PATH)
 #set(orocos_kdl_LIBRARIES ${orocos_kdl_LIBRARY})
 
-add_action_files(
-    DIRECTORY action
-    FILES
-    SvenzvaJoint.action
-)
 add_service_files(
     DIRECTORY srv
     FILES
