@@ -1,20 +1,20 @@
 <robot
-  name="svenzva_description">
+  name="revel">
   <link
     name="base_link">
     <inertial>
       <origin
-        xyz="0.00534105939021147 -0.00206629541945739 0.0284371004255722"
+        xyz="-0.0023730528889142 -0.00502093782805647 0.0237603120106106"
         rpy="0 0 0" />
       <mass
-        value="0.506214468139727" />
+        value="0.438546009395726" />
       <inertia
-        ixx="0.00114305339332644"
-        ixy="3.15672381992316E-05"
-        ixz="-5.92611471736903E-06"
-        iyy="0.00117822681147312"
-        iyz="-2.22879533478747E-06"
-        izz="0.00169367351719374" />
+        ixx="0.00101057713013944"
+        ixy="-1.3327151795118E-05"
+        ixz="3.8013573363164E-07"
+        iyy="0.000959740758547222"
+        iyz="1.36174962948068E-05"
+        izz="0.00151576833373158" />
     </inertial>
     <visual>
       <origin
@@ -22,47 +22,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/base_link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.3 0.3 0.3 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://svenzva_description/meshes/base_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <link
-    name="link_1">
-    <inertial>
-      <origin
-        xyz="0.00607508557819933 -2.20815694732225E-05 0.0577282570202576"
-        rpy="0 0 0" />
-      <mass
-        value="0.153541664031025" />
-      <inertia
-        ixx="0.000143859857634591"
-        ixy="2.3744760815064E-08"
-        ixz="-1.48862872082739E-05"
-        iyy="0.000169533549591294"
-        iyz="-1.75052266297562E-07"
-        izz="5.71468876958754E-05" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://svenzva_description/meshes/link_1.STL" />
+          filename="package://4_25_urdf6/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -76,39 +36,83 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_1.STL" />
+          filename="package://4_25_urdf6/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="link_1">
+    <inertial>
+      <origin
+        xyz="-1.5879447236338E-05 -0.00709916492149038 0.0638496557944277"
+        rpy="0 0 0" />
+      <mass
+        value="0.21227632351697" />
+      <inertia
+        ixx="0.000390294391971273"
+        ixy="-1.99057422257391E-08"
+        ixz="-1.30802993677179E-07"
+        iyy="0.000349377287881694"
+        iyz="3.96416720459436E-05"
+        izz="9.38628502767779E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://4_25_urdf6/meshes/link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://4_25_urdf6/meshes/link_1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_1"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="0" upper="6.0" />
     <origin
-      xyz="0 0 0.07119999984"
-      rpy="-1.93033535706571E-16 -1.54074395550979E-32 0" />
+      xyz="0 0 0.06485"
+      rpy="0 0 -4.404E-17" />
     <parent
       link="base_link" />
     <child
       link="link_1" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="6.0"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_2">
     <inertial>
       <origin
-        xyz="1.07182976154903E-06 0.103154493257645 0.0141451712274321"
+        xyz="9.60103803698233E-07 0.107533810370169 0.00620995831245331"
         rpy="0 0 0" />
       <mass
-        value="0.281175487770198" />
+        value="0.293474008383791" />
       <inertia
-        ixx="0.00215619450264231"
-        ixy="-1.18560079052635E-08"
-        ixz="-3.46566000959967E-09"
-        iyy="0.000122217546884776"
-        iyz="0.0001531208460593"
-        izz="0.00212480482551255" />
+        ixx="0.00225022357114847"
+        ixy="-9.60850883967213E-09"
+        ixz="-4.43844579851517E-09"
+        iyy="0.000140576264450523"
+        iyz="0.00018997435572042"
+        izz="0.00220368381821717" />
     </inertial>
     <visual>
       <origin
@@ -116,7 +120,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_2.STL" />
+          filename="package://4_25_urdf6/meshes/link_2.STL" />
       </geometry>
       <material
         name="">
@@ -130,39 +134,43 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_2.STL" />
+          filename="package://4_25_urdf6/meshes/link_2.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_2"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="-2.0" upper="2.0" />
     <origin
-      xyz="0.00891249579997938 0 0.09644999999"
-      rpy="1.5707963267949 -1.93033535706571E-16 1.5707963267949" />
+      xyz="0 -0.015113 0.1155"
+      rpy="1.5708 0 4.3282E-16" />
     <parent
       link="link_1" />
     <child
       link="link_2" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 0 1" />
+    <limit
+      lower="-2"
+      upper="2"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_3">
     <inertial>
       <origin
-        xyz="-0.00158295343768384 0.0592398990299627 0.0120000556558225"
+        xyz="-0.00271183900274356 0.0610091301092551 0.00559400264418311"
         rpy="0 0 0" />
       <mass
-        value="0.246165133529195" />
+        value="0.254948895895984" />
       <inertia
-        ixx="0.000741437282012257"
-        ixy="1.95254756418241E-05"
-        ixz="-2.40700471861297E-06"
-        iyy="0.000126868927384053"
-        iyz="9.02514597868819E-05"
-        izz="0.000753110375891627" />
+        ixx="0.000754190414215377"
+        ixy="3.05338561010444E-05"
+        ixz="-4.1313097699641E-06"
+        iyy="0.00013661856463044"
+        iyz="9.30634602239697E-05"
+        izz="0.000773028116455631" />
     </inertial>
     <visual>
       <origin
@@ -170,7 +178,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_3.STL" />
+          filename="package://4_25_urdf6/meshes/link_3.STL" />
       </geometry>
       <material
         name="">
@@ -184,39 +192,43 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_3.STL" />
+          filename="package://4_25_urdf6/meshes/link_3.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_3"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="-2.0" upper="2.0" />
     <origin
-      xyz="0 0.22770179999 0.00317500840002059"
-      rpy="-3.14159265358979 -2.14461300673676E-15 3.14159265358979" />
+      xyz="0 0.2277 -0.009226"
+      rpy="3.1416 -1.5345E-16 3.1416" />
     <parent
       link="link_2" />
     <child
       link="link_3" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="-2"
+      upper="2"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_4">
     <inertial>
       <origin
-        xyz="0.00183872739831845 0.0797738010820961 -0.00643156916623339"
+        xyz="0.00313257969328566 0.0815755631836339 -0.00624759833233165"
         rpy="0 0 0" />
       <mass
-        value="0.211922628762084" />
+        value="0.220706391128874" />
       <inertia
-        ixx="0.000691521163409683"
-        ixy="-1.6472855114629E-05"
-        ixz="-1.88349270867275E-06"
-        iyy="0.000150807902737057"
-        iyz="-8.19166968109381E-05"
-        izz="0.000636626532287155" />
+        ixx="0.000694656697810584"
+        ixy="-2.50951587549425E-05"
+        ixz="-3.21737084342497E-06"
+        iyy="0.000159457919129819"
+        iyz="-8.39232726027445E-05"
+        izz="0.00064764384602654" />
     </inertial>
     <visual>
       <origin
@@ -224,7 +236,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_4.STL" />
+          filename="package://4_25_urdf6/meshes/link_4.STL" />
       </geometry>
       <material
         name="">
@@ -238,39 +250,43 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_4.STL" />
+          filename="package://4_25_urdf6/meshes/link_4.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_4"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="-2.4" upper="2.4" />
     <origin
-      xyz="-0.00165000009395299 0.13769999999 0.00581250408200003"
-      rpy="0 1.5707963267949 0" />
+      xyz="-0.00165 0.1377 -0.000388"
+      rpy="0 1.5708 0" />
     <parent
       link="link_3" />
     <child
       link="link_4" />
     <axis
       xyz="0 0 1" />
+    <limit
+      lower="-1.7"
+      upper="1.7"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_5">
     <inertial>
       <origin
-        xyz="0.000198138937290779 0.0317576969029498 0.00758259926210232"
+        xyz="0.000198872480250657 0.0318752691244907 0.00773763240050632"
         rpy="0 0 0" />
       <mass
-        value="0.164460903684414" />
+        value="0.163854288137822" />
       <inertia
-        ixx="0.000179026236386024"
-        ixy="1.25477268152759E-07"
-        ixz="1.92814341999761E-07"
-        iyy="0.000130748756855599"
-        iyz="3.21489367850694E-05"
-        izz="0.00014102690064648" />
+        ixx="0.000177331781147381"
+        ixy="1.29308489343752E-07"
+        ixz="1.97866268691943E-07"
+        iyy="0.000129668345614458"
+        iyz="3.29586592910205E-05"
+        izz="0.000140389798299154" />
     </inertial>
     <visual>
       <origin
@@ -278,7 +294,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_5.STL" />
+          filename="package://4_25_urdf6/meshes/link_5.STL" />
       </geometry>
       <material
         name="">
@@ -292,39 +308,43 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_5.STL" />
+          filename="package://4_25_urdf6/meshes/link_5.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_5"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="-1.9" upper="1.9" />
     <origin
-      xyz="0.00165000009004705 0.15039999999 -0.00158749994695297"
-      rpy="0 1.5707963267949 0" />
+      xyz="0.00165 0.1504 -0.0015875"
+      rpy="0 1.5708 0" />
     <parent
       link="link_4" />
     <child
       link="link_5" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 0 1" />
+    <limit
+      lower="-1.7"
+      upper="1.7"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_6">
     <inertial>
       <origin
-        xyz="-0.0057601102835214 2.01339142936168E-05 -0.0374605011648069"
+        xyz="0.00579554535449743 -1.99117701069566E-05 -0.0330401015812523"
         rpy="0 0 0" />
       <mass
-        value="0.195112141464075" />
+        value="0.210564848441307" />
       <inertia
-        ixx="0.000124406751238452"
-        ixy="-3.20472092584313E-06"
-        ixz="7.06955362871711E-06"
-        iyy="0.000245991583429068"
-        iyz="-1.02047290359859E-08"
-        izz="0.000219444070727294" />
+        ixx="0.000137363872234681"
+        ixy="-3.20648763983526E-06"
+        ixz="-1.17271419616097E-05"
+        iyy="0.000276011790395281"
+        iyz="5.78816301512628E-09"
+        izz="0.000246179867065394" />
     </inertial>
     <visual>
       <origin
@@ -332,12 +352,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_6.STL" />
+          filename="package://4_25_urdf6/meshes/link_6.STL" />
       </geometry>
       <material
         name="">
         <color
-          rgba="0.3 0.3 0.3 1" />
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
     <collision>
@@ -346,39 +366,43 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_6.STL" />
+          filename="package://4_25_urdf6/meshes/link_6.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_6"
     type="revolute">
-    <limit effort="30" velocity="1.0" lower="0.0" upper="6.0" />
     <origin
-      xyz="-0.0147500000020004 0.0754999999999999 0.00142499999999982"
-      rpy="1.5707963267949 1.5707963267949 0" />
+      xyz="-0.01475 0.08 0.001425"
+      rpy="1.5708 1.5708 0" />
     <parent
       link="link_5" />
     <child
       link="link_6" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="6.0"
+      effort="30"
+      velocity="1.0" />
   </joint>
   <link
     name="link_7">
     <inertial>
       <origin
-        xyz="-0.000635000130040961 1.72150542085414E-10 0.0213790033648974"
+        xyz="-4.33014013534461E-10 4.1616174568937E-10 0.022087275711041"
         rpy="0 0 0" />
       <mass
-        value="0.0354585256038568" />
+        value="0.0177292628019284" />
       <inertia
-        ixx="2.02110056282734E-05"
-        ixy="4.52582961569063E-06"
-        ixz="-3.28017662692727E-14"
-        iyy="1.66232577520863E-05"
-        iyz="6.19440107025139E-14"
-        izz="1.97134164501418E-05" />
+        ixx="9.82169789482217E-06"
+        ixy="2.58836323876685E-06"
+        ixz="-2.12436204405245E-20"
+        iyy="8.58698982788479E-06"
+        iyz="1.49410346492048E-20"
+        izz="1.04158739441426E-05" />
     </inertial>
     <visual>
       <origin
@@ -386,12 +410,12 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_7.STL" />
+          filename="package://4_25_urdf6/meshes/link_finger_1.STL" />
       </geometry>
       <material
         name="">
         <color
-          rgba="0.3 0.3 0.3 1" />
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
       </material>
     </visual>
     <collision>
@@ -400,29 +424,26 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_7.STL" />
+          filename="package://4_25_urdf6/meshes/link_finger_1.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_7"
-    type="fixed">
-    <limit lower="-0.05" upper="0.05" velocity="1.0" effort="5"/>
+    type="prismatic">
     <origin
-      xyz="0 0 -0.0573569998840002"
-      rpy="-3.14159265358979 0 -3.14159265358979" />
+      xyz="0 0 -0.052509"
+      rpy="3.1416 3.0358E-17 3.1416" />
     <parent
       link="link_6" />
     <child
       link="link_7" />
     <axis
       xyz="-1 0 0" />
+    <limit
+      lower="-0.05"
+      upper="0.05"
+      effort="30"
+      velocity="1.0" />
   </joint>
-  <link name="ee_link"> </link>
-  <joint name="ee_joint" type="fixed">
-    <parent link="link_7"/>
-    <child link="ee_link"/>
-    <origin xyz="0 0 0.0"/>
-  </joint>
-
 </robot>
