@@ -103,9 +103,9 @@ int main(int argc, char** argv){
 
     ros::NodeHandle n;
     int rate = 10;
-    //n.param<int>("~publish_rate", rate, 1);
-    //ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
-    //ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/revel/model_efforts/", 1);
+    //n.param<int>("~publish_rate", rate, 20);
+    ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
+    ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/revel/model_efforts/", 1);
     ros::Rate update_rate = ros::Rate(rate);
     std::string path = ros::package::getPath("svenzva_description");
     std::string full_path = path + "/robots/svenzva_arm.urdf";
@@ -120,15 +120,23 @@ int main(int argc, char** argv){
     my_tree.getChain("base_link", "link_6", chain);
     ROS_INFO("Kinematic chain expects %d joints", chain.getNrOfJoints());
 
-    //ros::spinOnce();
-    //ros::Rate(1).sleep();
-    //update_rate.sleep();
-    /*while(ros::ok()){
+
+    /*
+     * Publish the expected torque according to the dynamic model
+     */
+    ros::spinOnce();
+    ros::Rate(1).sleep();
+    update_rate.sleep();
+    while(ros::ok()){
         ros::spinOnce();
         feel_efforts(tau_pub);
         update_rate.sleep();
-    }*/
-    feel_velocity();
+    }
+    
+    /*
+     * Testing out jacobian and differential kinematics
+     */
+    //feel_velocity();
 
     return 0;
 

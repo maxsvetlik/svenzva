@@ -28,17 +28,15 @@ class RevelGripperActionServer():
         self.mx_io = mx_io
         self.motor_id = 7
         self.closing_force = 10 #mA
-        self.opening_force = -20 #mA
-        self.moving_distance = 2.8 #rad
+        self.opening_force = -30 #mA
+        self.moving_distance = 2.5 #rad
         self.motor_state = MotorState()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
-        action_name = "GripperAction"
 
-
-        self._as = actionlib.SimpleActionServer(action_name, GripperAction, execute_cb=self.gripper_cb, auto_start = False)
+        self._as = actionlib.SimpleActionServer("revel/gripper_action", GripperAction, execute_cb=self.gripper_cb, auto_start = False)
         self._as.start()
 
-    def execute_cb(self, goal):
+    def gripper_cb(self, goal):
         r = rospy.Rate(0.5)
         success = True
 
@@ -56,7 +54,7 @@ class RevelGripperActionServer():
         rospy.loginfo("Executing gripper action.")
 
         if goal.target_action == goal.OPEN:
-            self.open_gripper(self.closing_force)
+            self.open_gripper(self.opening_force)
         elif goal.target_action == goal.CLOSE:
             #close fingers gently until they have met the target object
             self.close_gripper(self.closing_force)
@@ -69,7 +67,7 @@ class RevelGripperActionServer():
                 rospy.loginfo('%s: Preempted' % self._action_name)
                 self._as.set_preempted()
                 success = False
-                break
+                return
         self._result.success = True
         self._result.sequence = self._feedback.sequence
         self._as.set_succeeded(self._result)
@@ -89,7 +87,7 @@ class RevelGripperActionServer():
 
         #open gripper the initial_distance
         self.initial_pos = self.motor_state.position
-        self.mx_io.set_torque_goal(self.motor_id, self.closing_force)
+        self.mx_io.set_torque_goal(self.motor_id, self.opening_force)
 
         while( abs(self.initial_pos - self.motor_state.position) < self.moving_distance):
             rospy.sleep(0.05)

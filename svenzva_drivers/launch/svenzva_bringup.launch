@@ -20,4 +20,7 @@
         <param name="update_rate" value="$(arg data_frequency)"/>
     </node>
 
+    <!-- Start dynamics module -->
+    <node name="revel_dynamic_model" type="svenzva_dynamics" pkg="svenzva_drivers" output="screen"/>
+
 </launch>
