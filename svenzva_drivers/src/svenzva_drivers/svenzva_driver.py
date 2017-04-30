@@ -14,6 +14,7 @@ from threading import Thread
 from mx_driver import dynamixel_io
 from mx_driver.dynamixel_const import *
 from svenzva_drivers.joint_trajectory_action_controller import *
+from svenzva_drivers.revel_arm_services import *
 from svenzva_drivers.revel_gripper_server import *
 from svenzva_drivers.svenzva_compliance_controller import *
 from std_msgs.msg import Bool
@@ -175,6 +176,36 @@ class SvenzvaDriver:
             rate.sleep()
 
 
+    def compliance_example_j4(self):
+        self.dxl_io.set_torque_enabled(1, 1)
+        self.dxl_io.set_torque_enabled(2, 1)
+        self.dxl_io.set_torque_enabled(3, 1)
+
+        self.dxl_io.set_operation_mode(1, 0) #change back to 5 for pos
+        self.dxl_io.set_operation_mode(2, 0) #change back to 5 for pos
+        self.dxl_io.set_operation_mode(3, 0) #change back to 5 for pos
+
+
+        self.dxl_io.set_operation_mode(4, 0) #change back to 5 for pos
+        self.dxl_io.set_torque_enabled(4, 1)
+
+
+        self.dxl_io.set_operation_mode(4, 0) #change back to 5 for pos
+        self.dxl_io.set_torque_enabled(5, 1)
+
+        self.dxl_io.set_operation_mode(6, 0) #change back to 5 for pos
+        self.dxl_io.set_torque_enabled(6, 1)
+
+
+        #TODO: make standalone
+        compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io)
+        compliance_controller.start(0.02)
+
+        #below are good for compliance
+        #self.dxl_io.set_acceleration_profile(4, 40)
+        #self.dxl_io.set_velocity_profile(4, 200)
+
+
     def start_modules(self):
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
@@ -183,12 +214,10 @@ class SvenzvaDriver:
         action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
         action.start()
 
+        arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
+
         gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
         gripper_server.start()
-
-
-        #compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io)
-        #compliance_controller.start(0.02)
 
         """
         Svenzva.SvenzvaPoseActionServer pose_server(comm, nh, kinova_robotType);
@@ -207,8 +236,13 @@ class SvenzvaDriver:
     def initialze_motor_states(self):
         #self.dxl_io.set_torque_enabled(5, 1)
         #self.dxl_io.set_goal_current(5, 0)
+        compliance_for_j4 = True
 
-        #self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
+        if compliance_for_j4:
+            self.compliance_example_j4()
+            return
+        else:
+            self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
 
         for i in range(self.min_motor_id, self.max_motor_id + 1):
             self.dxl_io.set_torque_enabled(i, 1)
@@ -221,8 +255,8 @@ class SvenzvaDriver:
             #self.dxl_io.set_velocity_profile(i, 200)
 
             #below are good for trajectories
-            self.dxl_io.set_acceleration_profile(i, 3)
-            self.dxl_io.set_velocity_profile(i, 100)
+            self.dxl_io.set_acceleration_profile(i, 5)
+            self.dxl_io.set_velocity_profile(i, 80)
             rospy.sleep(0.1)
     """
     Given an array of joint positions (in radians), send request to individual servos
