@@ -4,8 +4,8 @@
   <!-- joy node -->
   <node respawn="true" pkg="joy" type="joy_node" name="svenzva_joy_node" >
     <param name="dev" type="string" value="$(arg joy_dev)" />
-    <param name="deadzone" value="0.1" />
-    <param name="autorepeat_rate" value="0.25"/>
+    <param name="deadzone" value="0.4" />
+    <param name="autorepeat_rate" value="0"/>
   </node>
 
   <!-- Axes -->

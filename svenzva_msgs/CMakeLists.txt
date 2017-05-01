@@ -13,6 +13,8 @@ add_message_files(
 
 add_action_files(DIRECTORY action FILES Gripper.action SvenzvaJoint.action)
 
+add_service_files(DIRECTORY srv FILES SetTorqueEnable.srv)
+
 generate_messages(
   DEPENDENCIES std_msgs actionlib_msgs
 )

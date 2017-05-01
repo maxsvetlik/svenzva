@@ -1,0 +1,6 @@
+uint8 DISABLED=0
+uint8 ENABLED=1
+
+int32[] motor_list
+---
+bool success

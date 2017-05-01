@@ -8,6 +8,7 @@
 
     Created for the Pi Robot Project: http://www.pirobot.org
     Copyright (c) 2010 Patrick Goebel.  All rights reserved.
+    Copyright (c) 2017 Svenzva Robotics
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
