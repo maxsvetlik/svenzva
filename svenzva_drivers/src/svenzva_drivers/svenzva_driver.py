@@ -14,6 +14,7 @@ from threading import Thread
 from mx_driver import dynamixel_io
 from mx_driver.dynamixel_const import *
 from svenzva_drivers.joint_trajectory_action_controller import *
+from svenzva_drivers.revel_cartesian_controller import *
 from svenzva_drivers.revel_arm_services import *
 from svenzva_drivers.revel_gripper_server import *
 from svenzva_drivers.svenzva_compliance_controller import *
@@ -207,6 +208,7 @@ class SvenzvaDriver:
 
 
     def start_modules(self):
+        global traj_client
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
         jtac.start()
@@ -218,6 +220,11 @@ class SvenzvaDriver:
 
         gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
         gripper_server.start()
+
+        cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
+
+        traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
+        traj_client.wait_for_server()
 
         """
         Svenzva.SvenzvaPoseActionServer pose_server(comm, nh, kinova_robotType);
@@ -236,15 +243,16 @@ class SvenzvaDriver:
     def initialze_motor_states(self):
         #self.dxl_io.set_torque_enabled(5, 1)
         #self.dxl_io.set_goal_current(5, 0)
-        compliance_for_j4 = True
+        compliance_for_j4 = False
 
         if compliance_for_j4:
             self.compliance_example_j4()
             return
-        else:
-            self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
+        #else:
+        #    self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
 
         for i in range(self.min_motor_id, self.max_motor_id + 1):
+            self.dxl_io.set_operation_mode(i, 5) #change back to 5 for pos
             self.dxl_io.set_torque_enabled(i, 1)
             #self.dxl_io.set_operation_mode(i, 4)
             #self.dxl_io.set_position_p_gain(i, 2048)
@@ -258,14 +266,19 @@ class SvenzvaDriver:
             self.dxl_io.set_acceleration_profile(i, 5)
             self.dxl_io.set_velocity_profile(i, 80)
             rospy.sleep(0.1)
+
+
+        self.dxl_io.set_torque_enabled(7, 0)
+        self.dxl_io.set_operation_mode(7, 0) #change back to 5 for pos
+        self.dxl_io.set_torque_enabled(7, 1)
+
     """
     Given an array of joint positions (in radians), send request to individual servos
     TODO: Check if enought joint positions
           Check if motors are in joint mode and not wheel mode
     """
     def fkine_action(self, data):
-        traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
-        traj_client.wait_for_server()
+        global traj_client
         goal = FollowJointTrajectoryGoal()
         goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         point = JointTrajectoryPoint()

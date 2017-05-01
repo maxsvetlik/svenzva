@@ -41,9 +41,9 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   nh_.param("scale_linear", l_scale_, l_scale_);
 
   r = ros::Rate(rate_);
-  vel_pub_ = nh_.advertise<geometry_msgs::Twist>("joystick/cmd_vel", 1);
+  vel_pub_ = nh_.advertise<geometry_msgs::Twist>("revel/eef_velocity", 1);
 
-  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &SvenzvaArmJoystick::joyCallback, this);
+  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &SvenzvaArmJoystick::joyCallback, this);
 
 }
 
@@ -55,7 +55,7 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   twist.linear.y = l_scale_*joy->axes[linear_y];
   twist.linear.z = l_scale_*joy->axes[linear_z];
   vel_pub_.publish(twist);
-  r.sleep();
+  //r.sleep();
 }
 
 

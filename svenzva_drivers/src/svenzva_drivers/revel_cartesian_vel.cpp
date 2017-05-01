@@ -22,7 +22,9 @@ KDL::JntArray jnt_q(mNumJnts);
 KDL::JntArray jnt_qd(mNumJnts);
 KDL::JntArray jnt_qdd(mNumJnts);
 KDL::JntArray jnt_taugc(mNumJnts);
-actionlib::SimpleActionClient<svenzva_msgs::SvenzvaJointAction> j_ac("svenzva_joint_action", true);
+svenzva_msgs::SvenzvaJointGoal goal;
+bool vel_updated = false;
+
 
 void js_cb(const sensor_msgs::JointState::ConstPtr& msg){
     joint_states = *msg;
@@ -33,6 +35,8 @@ void js_cb(const sensor_msgs::JointState::ConstPtr& msg){
  */
 
 void cart_vel_cb(const geometry_msgs::TwistConstPtr& msg){
+    if(msg->linear.x == 0 && msg->linear.y == 0 && msg->linear.z == 0)
+        return;
 
     for (unsigned int i = 0; i < mNumJnts; i++) {
       jnt_q(i) = joint_states.position[i];
@@ -53,18 +57,21 @@ void cart_vel_cb(const geometry_msgs::TwistConstPtr& msg){
     //TODO: switch to velocity, and extrapolate position so as to send position trajectories on a constant, but incremental basis
     //so as to behave as one would expect a velocity command to
     vel_solver.CartToJnt(  jnt_q, vel, qdot_out);
+    
+    svenzva_msgs::SvenzvaJointGoal goal_prime;
+    ros::spinOnce();
 
-    
-    svenzva_msgs::SvenzvaJointGoal goal;
-    
     for( int i=0; i < mNumJnts; i++){
-        ROS_INFO("Joint %d: %f", i+1, qdot_out(i));
-        goal.positions.push_back(qdot_out(i));
+        //ROS_INFO("Joint %d: %f", i+1, qdot_out(i));
+        ROS_INFO("Joint at %f, moving to %f", joint_states.position[i], joint_states.position[i] + qdot_out(i));
+        goal_prime.positions.push_back(joint_states.position[i] + qdot_out(i));
     }
+    goal = goal_prime;
+    vel_updated = true;
 
     if(false){
         //send position trajectory to driver
-        j_ac.sendGoal(goal);
+        //j_ac.sendGoal(goal);
     }
 
 }
@@ -80,6 +87,8 @@ int main(int argc, char** argv){
     ros::Rate update_rate = ros::Rate(rate);
     std::string path = ros::package::getPath("svenzva_description");
     std::string full_path = path + "/robots/svenzva_arm.urdf";
+
+    actionlib::SimpleActionClient<svenzva_msgs::SvenzvaJointAction> j_ac("svenzva_joint_action", true);
 
     //setup kinematic model
     ROS_INFO("Loading model from %s", full_path.c_str());
@@ -99,6 +108,10 @@ int main(int argc, char** argv){
 
     while(ros::ok()){
         ros::spinOnce();
+        //hacky use of private action server?
+        if(vel_updated)
+            j_ac.sendGoal(goal);
+        vel_updated = false;
         update_rate.sleep();
     }
 
