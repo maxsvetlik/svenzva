@@ -64,10 +64,8 @@ class JointTrajectoryActionController():
         self.num_joints = 6
         self.controller_namespace = controller_namespace
         self.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
-        #TODO make the below a param
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
 
-        #TODO sleep in the joint_state cb?
         self.motor_states = []
         self.joint_to_id = dict(zip(self.joint_names, range(1, self.num_joints+1)))
         self.gear_ratios = [4,6,6,4,4,1]

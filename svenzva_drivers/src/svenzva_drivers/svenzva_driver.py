@@ -59,7 +59,7 @@ from svenzva_msgs.msg import MotorState, MotorStateList
 
 class SvenzvaDriver:
 
-    #adapted from controller_manager.py [LINK], 3/17/17
+    #adapted from controller_manager.py [https://github.com/SvenzvaRobotics/mx_dynamixel], 3/17/17
     def __init__(self,
                  port_name='/dev/ttyUSB0',
                  port_namespace='revel',
@@ -95,7 +95,7 @@ class SvenzvaDriver:
 
         self.start_modules()
 
-    #adapted from serial_proxy.py [LINK], 3/17/17
+    #adapted from serial_proxy.py [https://github.com/SvenzvaRobotics/mx_dynamixel], 3/17/17
     def connect(self, port_name, baud_rate, readback_echo):
         try:
             self.dxl_io = dynamixel_io.DynamixelIO(port_name, baud_rate, readback_echo)
@@ -104,14 +104,14 @@ class SvenzvaDriver:
             sys.exit(1)
 
         if self.update_rate > 0: Thread(target=self.__update_motor_states).start()
-        #if self.diagnostics_rate > 0: Thread(target=self.__publish_diagnostic_information).start()
 
     def disconnect(self):
         return
-        #self.dxl_io.close()
 
-    #Check if all motors are reachable on the serial port
-    #adapted from serial_proxy.py [LINK], 3/17/17
+    """
+    Check if all motors are reachable on the serial port
+    """
+    #adapted from serial_proxy.py [https://github.com/SvenzvaRobotics/mx_dynamixel], 3/17/17
     def __find_motors(self):
         rospy.loginfo('%s: Pinging motor IDs %d through %d...' % (self.port_namespace, self.min_motor_id, self.  max_motor_id))
         self.motors = []
@@ -138,7 +138,7 @@ class SvenzvaDriver:
         rospy.loginfo('%s, actuator initialization complete.' % status_str[:-2])
 
 
-    #adapted from serial_proxy.py [LINK], 3/17/17
+    #adapted from serial_proxy.py [https://github.com/SvenzvaRobotics/mx_dynamixel], 3/17/17
     def __update_motor_states(self):
         num_events = 50
         debug_polling_rate = False
@@ -208,7 +208,7 @@ class SvenzvaDriver:
             rate.sleep()
 
 
-    def compliance_example_j4(self):
+    def compliance_mode(self):
         self.dxl_io.set_torque_enabled(1, 1)
         self.dxl_io.set_torque_enabled(2, 1)
         self.dxl_io.set_torque_enabled(3, 1)
@@ -274,10 +274,10 @@ class SvenzvaDriver:
     def initialze_motor_states(self):
         #self.dxl_io.set_torque_enabled(5, 1)
         #self.dxl_io.set_goal_current(5, 0)
-        compliance_for_j4 = False
+        compliance_demonstration = False
 
-        if compliance_for_j4:
-            self.compliance_example_j4()
+        if compliance_demonstration:
+            self.compliance_mode()
             return
         #else:
         #    self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
@@ -288,10 +288,6 @@ class SvenzvaDriver:
             #self.dxl_io.set_operation_mode(i, 4)
             #self.dxl_io.set_position_p_gain(i, 2048)
             #self.dxl_io.set_position_i_gain(i, 0)
-
-            #below are good for compliance
-            #self.dxl_io.set_acceleration_profile(i, 40)
-            #self.dxl_io.set_velocity_profile(i, 200)
 
             #below are good for trajectories
             self.dxl_io.set_acceleration_profile(i, 5)
@@ -321,13 +317,11 @@ class SvenzvaDriver:
 
     @staticmethod
     def rad_to_raw(angle):
-        #return int(rouna(angle * encoder_ticks_per_rad))
         #encoder ticks = resolution / radian range
         return int(round( angle * 4096.0 / 6.2831853 ))
 
     @staticmethod
     def raw_to_rad(raw):
-        #return raw * radians_per_encoder_tick
         #radians_per = radians_range / resolution
         return raw * 6.2831853 / 4096.0
 
@@ -339,38 +333,8 @@ class SvenzvaDriver:
     def spd_raw_to_rad(vel):
         return vel * RPM_PER_TICK * RPM_TO_RADSEC
 
-def home_arm(data):
-    # load the yaml file that specifies the home position
-    rospack = rospkg.RosPack()
-    path = rospack.get_path('svenzva_drivers')
-    f = open(path+"/config/home_position.yaml")
-    qmap = yaml.safe_load(f)
-    f.close()
-
-    #2 - execute action on yaml file
-    req = SvenzvaJointGoal()
-    if len(qmap['home']) < 6:
-        rospy.logerr("Could not home arm. Home position configuration file ill-formed or missing. Aborting.")
-        return
-    req.positions = qmap['home']
-
-    fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
-
-    fkine.wait_for_server()
-    rospy.loginfo("Found Trajectory action server")
-    rospy.loginfo("Homing arm...")
-    fkine.send_goal_and_wait(req)
-
-def setup():
-    rospy.init_node('svenzva_driver', anonymous=True)
-    action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, fkine_action, auto_start = False)
-    action.start()
-    rospy.Service('home_arm_service', HomeArm, home_arm)
-    while not rospy.is_shutdown():
-        rospy.spin()
 if __name__ == '__main__':
     try:
-        #setup()
         sd = SvenzvaDriver()
         rospy.spin()
         sd.disconnect()

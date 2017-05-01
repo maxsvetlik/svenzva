@@ -47,7 +47,7 @@ import actionlib
 
 from std_msgs.msg import Float64, Int32
 from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
-from svenzva_msgs.srv import SetTorqueEnable
+from svenzva_msgs.srv import SetTorqueEnable, HomeArm
 
 class RevelArmServices():
 
@@ -56,6 +56,7 @@ class RevelArmServices():
         self.mx_io = mx_io
         self.num_motors = num_motors
         self.torque_srv = rospy.Service('/revel/SetTorqueEnable', SetTorqueEnable, self.torque_enable_cb)
+        self.home_srv =rospy.Service('home_arm_service', HomeArm, self.home_arm)
         self.start()
 
     def torque_enable_cb(self, data):
@@ -75,4 +76,26 @@ class RevelArmServices():
         rospy.loginfo("Starting RevelArmServices...")
         #rospy.spin()
 
+
+    def home_arm(self, data):
+        # load the yaml file that specifies the home position
+        rospack = rospkg.RosPack()
+        path = rospack.get_path('svenzva_drivers')
+        f = open(path+"/config/home_position.yaml")
+        qmap = yaml.safe_load(f)
+        f.close()
+
+        #2 - execute action on yaml file
+        req = SvenzvaJointGoal()
+        if len(qmap['home']) < 6:
+            rospy.logerr("Could not home arm. Home position configuration file ill-formed or missing. Aborting.")
+            return
+        req.positions = qmap['home']
+
+        fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
+
+        fkine.wait_for_server()
+        rospy.loginfo("Found Trajectory action server")
+        rospy.loginfo("Homing arm...")
+        fkine.send_goal_and_wait(req)
 
