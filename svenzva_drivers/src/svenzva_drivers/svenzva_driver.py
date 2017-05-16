@@ -154,12 +154,12 @@ class SvenzvaDriver:
             motor_states = []
 
             try:
-                status_ar = self.dxl_io.get_sync_feedback(id_list)
+                status_ar = self.dxl_io.get_sync_feedback_reduced(id_list)
                 conseq_drops = 0
                 for index, state in enumerate(status_ar):
                     if state:
                         #convert to radians, and resolve multiplicative of gear ratio
-                        state['goal'] = self.raw_to_rad(state['goal']  / gr[index])
+                        state['goal'] = 0.0 #self.raw_to_rad(state['goal']  / gr[index])
                         state['position'] = self.raw_to_rad(state['position'] / gr[index])
                         #convert raw current to torque model (in newton meters)
                         #linear model: -9.539325804e-18 + 1.0837745x
@@ -167,6 +167,7 @@ class SvenzvaDriver:
                         state['speed'] = self.spd_raw_to_rad(state['speed'] / gr[index])
                         motor_states.append(MotorState(**state))
                         if dynamixel_io.exception: raise dynamixel_io.exception
+                self.error_counts['dropped'] = 0
             except dynamixel_io.FatalErrorCodeError, fece:
                 rospy.logerr(fece)
             except dynamixel_io.NonfatalErrorCodeError, nfece:
@@ -189,7 +190,7 @@ class SvenzvaDriver:
             if self.error_counts['dropped'] > 10:
                 rospy.logerr("Lost connectivitity to servo motors.")
                 rospy.logerr("Shutting down driver.")
-                rospy.shutdown()
+                rospy.signal_shutdown("Arm connection lost.")
 
             if motor_states:
                 msl = MotorStateList()
@@ -207,8 +208,18 @@ class SvenzvaDriver:
                     rospy.loginfo("Actual poling rate: %f", self.actual_rate)
             rate.sleep()
 
+    def _query_force_compliance(self):
+        self.compliance_controller.feel_and_react()
+        rospy.sleep(0.05)
 
-    def compliance_mode(self):
+
+    """
+    This enables the teaching mode of the Revel. Teaching mode senses outside forces and assists movement in the direction
+    of the felt force.
+
+    """
+    def teaching_mode(self):
+
         self.dxl_io.set_torque_enabled(1, 1)
         self.dxl_io.set_torque_enabled(2, 1)
         self.dxl_io.set_torque_enabled(3, 1)
@@ -228,18 +239,20 @@ class SvenzvaDriver:
         self.dxl_io.set_operation_mode(6, 0) #change back to 5 for pos
         self.dxl_io.set_torque_enabled(6, 1)
 
-
-        #TODO: make standalone
-        compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io)
-        compliance_controller.start(0.02)
+        self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, False)
+        rospy.sleep(0.1)
+        Thread(target=self.compliance_controller.start).start()
 
         #below are good for compliance
-        #self.dxl_io.set_acceleration_profile(4, 40)
-        #self.dxl_io.set_velocity_profile(4, 200)
+        #for i in range(0, 6):
+        #    self.dxl_io.set_acceleration_profile(i, 4)
+        #    self.dxl_io.set_velocity_profile(i, 10)
 
 
     def start_modules(self):
         global traj_client
+        compliance_demonstration = True
+
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
         jtac.start()
@@ -257,11 +270,10 @@ class SvenzvaDriver:
         traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
         traj_client.wait_for_server()
 
-        """
-        Svenzva.SvenzvaPoseActionServer pose_server(comm, nh, kinova_robotType);
-        Svenzva.SvenzvaAnglesActionServer angles_server(comm, nh);
-        Svenzva.SvenzvaFingersActionServer fingers_server(comm, nh);
-        """
+        if compliance_demonstration:
+            self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io,False)
+            rospy.sleep(0.1)
+            Thread(target=self.compliance_controller.start).start()
 
 
     #TODO: read from yaml
@@ -272,33 +284,49 @@ class SvenzvaDriver:
     #NOTE: Due to dynamixel limitations, initial encoder values must be [-4096, 4096]
     #otherwise, the motor_states will be inaccurate
     def initialze_motor_states(self):
-        #self.dxl_io.set_torque_enabled(5, 1)
-        #self.dxl_io.set_goal_current(5, 0)
-        compliance_demonstration = False
+        teaching_mode = False
 
-        if compliance_demonstration:
-            self.compliance_mode()
+        if teaching_mode:
+            self.teaching_mode()
             return
-        #else:
-        #    self.dxl_io.set_operation_mode(4, 5) #change back to 5 for pos
 
         for i in range(self.min_motor_id, self.max_motor_id + 1):
-            self.dxl_io.set_operation_mode(i, 5) #change back to 5 for pos
+            self.dxl_io.set_operation_mode(i, 5)
             self.dxl_io.set_torque_enabled(i, 1)
-            #self.dxl_io.set_operation_mode(i, 4)
-            #self.dxl_io.set_position_p_gain(i, 2048)
+            self.dxl_io.set_position_p_gain(i, 80)
             #self.dxl_io.set_position_i_gain(i, 0)
+            #self.dxl_io.set_position_d_gain(i,0)
+
 
             #below are good for trajectories
-            self.dxl_io.set_acceleration_profile(i, 5)
+            self.dxl_io.set_acceleration_profile(i, 7)
             self.dxl_io.set_velocity_profile(i, 80)
             rospy.sleep(0.1)
 
 
         self.dxl_io.set_torque_enabled(7, 0)
-        self.dxl_io.set_operation_mode(7, 0) #change back to 5 for pos
+        self.dxl_io.set_operation_mode(7, 0)
         self.dxl_io.set_torque_enabled(7, 1)
+        self.dxl_io.set_position_p_gain(6, 500)
+        self.dxl_io.set_position_d_gain(6, 900)
 
+        #set current / torque limit for gripper
+        self.dxl_io.set_goal_current(7, 0)
+        self.dxl_io.set_current_limit(7, 100)
+
+
+    """
+    To increase reliability of packet transmission and reduce the number of packets required to fetch
+    motor status, set the indirect addresses on each motor.
+    This is REQUIRED to be called before starting any status based callbacks.
+    """
+    """
+    def set_indirect_address(self):
+        bulk write ( INDIR_ADDR_1, (1, MX_PRESENT_CURRENT), (2, MX_PRESENT_CURRENT), ... )
+        bulk write ( INDIR_ADDR_1 + 2, (1, MX_PRESENT_CURRENT+1), (2, MX_PRESENT_CURRENT+1), ...)
+        ...
+
+    """
     """
     Given an array of joint positions (in radians), send request to individual servos
     TODO: Check if enought joint positions

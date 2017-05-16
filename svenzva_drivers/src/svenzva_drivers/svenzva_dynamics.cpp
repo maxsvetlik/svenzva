@@ -77,7 +77,6 @@ void feel_velocity(){
     KDL::Twist vel(trans, rot);
     KDL::JntArray qdot_out(mNumJnts);
     vel_solver.CartToJnt(  jnt_q, vel, qdot_out);  
-    ROS_INFO("Here3");
 
     for( int i=0; i < mNumJnts; i++){
         ROS_INFO("Joint %d: %f", i+1, qdot_out(i));

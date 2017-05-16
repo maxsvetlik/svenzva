@@ -44,16 +44,20 @@ from sensor_msgs.msg import JointState
 
 class SvenzvaComplianceController():
 
-    def __init__(self, controller_namespace, mx_io):
+    def __init__(self, controller_namespace, mx_io, start):
         self.mx_io = mx_io
         self.motor_state = MotorStateList()
+        self.last_motor_state = MotorStateList()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
         rospy.Subscriber("revel/model_efforts", JointState, self.model_effort_cb)
+        self.gr = [1,3,3,3,10,1,1]
         self.model_torque = [0, 0, 0, 0, 0, 0, 0]
-        self.real_torque = 0.0
-        self.last_felt = 0.0
+        if start:
+            self.start(20)
+
     def motor_state_cb(self, data):
-         self.motor_state = data
+        self.last_motor_state = self.motor_state
+        self.motor_state = data
 
 
     def model_effort_cb(self, msg):
@@ -62,77 +66,86 @@ class SvenzvaComplianceController():
         self.model_torque = msg.effort
 
 
-    #position based compliance:
-    #doesn't really work well at all
-    def feel_and_react_pos(self):
-        #if self.motor_state.moving:
-        #    return
-        threshold = 20 #int(round(1.5 * self.model_torque / 1.083775 / .00336))
-        delta = 400
-        goal_torque = self.model_torque
-        #convert from Nm to raw current value
-        goal_torque = int(round(goal_torque / 1.083775 / .00336))
-
-        rospy.loginfo("Joint 4 felt torque: %d", self.motor_state.load)
-        rospy.loginfo("Joint 4 model torque: %d", goal_torque)
-
-        if abs(self.motor_state.load - goal_torque) > threshold:
-            mag = int(math.copysign(1, goal_torque - self.motor_state.load ))
-            rospy.loginfo("Moving to: %d", self.rad_to_raw(self.motor_state.position * 4) + (mag * delta))
-            self.mx_io.set_position(4, self.rad_to_raw(self.motor_state.position*4) + (mag * delta))
-
-
     #current / torque based complaince
-    def feel_and_react_motor(self, motor_id, threshold):
-        #threshold = 3 #int(round(1.5 * self.model_torque / 1.083775 / .00336))
-        delta_pos = 70
-        delta_neg = -65
-        goal_torque = self.model_torque[motor_id-1]
+    #threshold theoretically helps smoothness
+    #and offset makes the joint easier to move due to model errors
+    def feel_and_react_motor(self, motor_id, threshold=3, offset=0):
+        filter_thresh = 3 # a delta larger than this value results in a discard
+        delta_pos = -50
+        delta_neg = 50
+        model_torque = self.model_torque[motor_id-1] + offset
         #convert from Nm to raw current value
-        goal_torque = int(round(goal_torque / 1.083775 / .00336))
+        model_torque = self.get_raw_current(model_torque / self.gr[motor_id-1])
+
+        #filter out random sign changes in current
+        #if motor_id is not 1:
+        if self.motor_state.motor_states[motor_id - 1].load > 0 and self.last_motor_state.motor_states[motor_id - 1].load < 0:
+            self.last_motor_state = self.motor_state
+        elif self.motor_state.motor_states[motor_id - 1].load < 0 and self.last_motor_state.motor_states[motor_id - 1].load > 0:
+            self.last_motor_state = self.motor_state
+            return
+
 
         #rospy.loginfo("Joint %d felt torque: %d", motor_id, self.motor_state.motor_states[motor_id - 1].load)
-        #rospy.loginfo("Joint %d model torque: %d", motor_id, goal_torque)
+        #rospy.loginfo("Joint %d model torque: %d", motor_id, model_torque)
 
 
-        if abs(self.motor_state.motor_states[motor_id - 1].load - goal_torque) > threshold:
-            mag = int(math.copysign(1, goal_torque - self.motor_state.motor_states[motor_id-1].load ))
-            goal = goal_torque
+        if abs(self.motor_state.motor_states[motor_id - 1].load - model_torque) > threshold:
+            mag = int(math.copysign(1, model_torque - self.motor_state.motor_states[motor_id-1].load ))
+            goal = model_torque
             if mag > 0:
-                goal += delta_pos
+                goal += delta_pos #* self.gr[motor_id - 1]
             else:
-                goal += delta_neg
-            #rospy.loginfo("Moving to: %d", self.rad_to_raw(self.motor_state.position * 4) + (mag * delta))
-            #rospy.loginfo("Setting target current to: %d", goal)
-            self.mx_io.set_goal_current(motor_id, goal)
-            rospy.sleep(0.02)
-            self.mx_io.set_goal_current(motor_id, goal_torque)
+                goal += delta_neg #* self.gr[motor_id - 1]
+
+            return (motor_id, goal)
+
+        return
+
+    #tau is torque in Nm
+    #output is as firmware expects (units of 3.36mA)
+    def get_raw_current(self, tau):
+        return int(round(tau / 1.083775 / .00336))
 
     def feel_and_react(self):
-        self.feel_and_react_motor(1, 3)
-        self.feel_and_react_motor(2, 3)
-        self.feel_and_react_motor(3, 3)
-        self.feel_and_react_motor(4, 3)
-        self.feel_and_react_motor(5, 1)
-        self.feel_and_react_motor(6, 1)
+        vals = []
+        vals.append(self.feel_and_react_motor(1, 1))
+        vals.append(self.feel_and_react_motor(2, 2))
+        vals.append(self.feel_and_react_motor(3, 2))
+        vals.append(self.feel_and_react_motor(4, 5))
+        vals.append(self.feel_and_react_motor(5, 1))
+        vals.append(self.feel_and_react_motor(6, 10))
+
+        vals = [x for x in vals if x is not None]
+
+        if len(vals) > 0:
+            self.mx_io.set_multi_current(tuple(vals))
+
+        rospy.sleep(0.05)
+
+
+        #update the motors that felt forces
+        vals = []
+
+        for i, state in enumerate(self.model_torque):
+
+            if i == 6:
+                break
+
+            vals.append( ( i+1, self.get_raw_current(state / self.gr[i])))
+
+        if len(vals) > 0:
+            self.mx_io.set_multi_current(tuple(vals))
+
+        rospy.sleep(0.02)
+
         return
 
     def rad_to_raw(self, angle):
         return int(round( angle * 4096.0 / 6.2831853 ))
 
-    def compare(self):
-        #gear ratio
-        goal_torque = self.model_torque
-        #convert from Nm to raw current value
-        goal_torque = int(round(goal_torque / 1.083775 / .00336))
-        #self.dxl_io.set_goal_current(5, goal_torque)
-        rospy.loginfo("Joint 4 felt torque: %f", self.motor_state.motor_states[3].load)
-        rospy.loginfo("Joint 4 model torque: %d", goal_torque)
-        rospy.sleep(0.1)
-
-
-    def start(self, rate):
+    def start(self):
         rospy.sleep(1.0)
+        self.feel_and_react()
         while not rospy.is_shutdown():
             self.feel_and_react()
-            rospy.sleep(0.05)

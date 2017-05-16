@@ -120,8 +120,11 @@ class RevelGripperActionServer():
         self.initial_pos = self.motor_state.position
         self.mx_io.set_torque_goal(self.motor_id, self.opening_force)
 
+        start = rospy.Time.now()
         while( abs(self.initial_pos - self.motor_state.position) < self.moving_distance):
             rospy.sleep(0.05)
+            if rospy.Time.now() - start > rospy.Duration(0.25):
+                pass
 
         #stop movement
         self.mx_io.set_torque_goal(self.motor_id, 0)

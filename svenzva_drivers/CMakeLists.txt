@@ -23,16 +23,6 @@ find_package( Eigen REQUIRED)
 
 catkin_python_setup()
 
-#find_library(orocos_kdl_LIBRARY NAMES ${orocos_kdl_LIBRARIES} PATHS
-    #    ${orocos_kdl_LIBRARY_DIRS} NO_DEFAULT_PATH)
-#set(orocos_kdl_LIBRARIES ${orocos_kdl_LIBRARY})
-
-add_service_files(
-    DIRECTORY srv
-    FILES
-    HomeArm.srv
-)
-
 generate_messages(
    DEPENDENCIES
    actionlib_msgs
@@ -50,6 +40,3 @@ target_link_libraries(svenzva_dynamics ${catkin_LIBRARIES})
 
 add_executable(svenzva_cartesian src/svenzva_drivers/revel_cartesian_vel.cpp)
 target_link_libraries(svenzva_cartesian ${catkin_LIBRARIES})
-
-add_executable(kdl_grav_example src/kdl_grav_example.cpp)
-target_link_libraries(kdl_grav_example ${catkin_LIBRARIES})
