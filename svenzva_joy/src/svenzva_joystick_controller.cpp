@@ -33,7 +33,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Joy.h>
-
+#include <svenzva_msgs/GripperAction.h>
+#include <actionlib/client/simple_action_client.h>
 
 class SvenzvaArmJoystick
 {
@@ -50,6 +51,7 @@ private:
   ros::Publisher vel_pub_;
   ros::Subscriber joy_sub_;
   ros::Rate r;
+  sensor_msgs::Joy  last_cmd;
 };
 
 /*
@@ -86,7 +88,26 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   twist.linear.y = l_scale_*joy->axes[linear_y];
   twist.linear.z = l_scale_*joy->axes[linear_z];
   vel_pub_.publish(twist);
-  //r.sleep();
+  last_cmd = *joy;
+
+
+  if(joy->axes[2] < 0 || joy->axes[5] < 0){
+      actionlib::SimpleActionClient<svenzva_msgs::GripperAction> gripper_action("/revel/gripper_action", true);
+      gripper_action.waitForServer();
+      
+        svenzva_msgs::GripperGoal goal;
+        if(joy->axes[2] < 0){
+            goal.target_action = goal.CLOSE;
+            goal.target_current = 100;
+        }
+        else if(joy->axes[5] < 0){
+            goal.target_action = goal.OPEN;
+        }
+
+        gripper_action.sendGoal(goal);
+  }
+
+
 }
 
 
@@ -94,6 +115,23 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "svenzva_joystick_controller");
   SvenzvaArmJoystick svenzva_joy;
+  actionlib::SimpleActionClient<svenzva_msgs::GripperAction> gripper_action("/revel/gripper_action", true);
+  gripper_action.waitForServer();
+  
+  while(ros::ok()){
+    /*
+    svenzva_msgs::GripperGoal goal;
+    if(last_cmd.axes[2] < 0){
+        goal.target_action = goal.CLOSE;
+        goal.target_current = 100;
+    }
+    else if(last_cmd.axes[5] < 0){
+        goal.target_action = goal.OPEN;
+    }
 
-  ros::spin();
+    gripper_action.sendGoal(goal);
+    */
+    ros::spinOnce();
+
+  }
 }

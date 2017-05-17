@@ -5,9 +5,12 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   joy
   roscpp
+  actionlib_msgs
+  svenzva_msgs
 )
 
 catkin_package(
+    DEPENDS actionlib_msgs svenzva_msgs
 )
 
 include_directories(
