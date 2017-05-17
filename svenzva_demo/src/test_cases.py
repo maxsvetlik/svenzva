@@ -114,7 +114,7 @@ def setup():
     goal.target_action = goal.CLOSE
     goal.target_current = 40
     gripper_client.send_goal(goal)
-    js_playback(fname, "demo_measure2")
+    js_playback(fname, "demo_measure")
     rospy.sleep(5.0)
 
     js_playback(fname, "home")

@@ -129,6 +129,13 @@ class JointTrajectoryActionController():
     def process_trajectory(self, traj):
         num_points = len(traj.points)
 
+        cur_pos = []
+        for i,state in enumerate(self.motor_states):
+            cur_pos.append( ( i+1, SvenzvaDriver.rad_to_raw(self.motor_states[i].position )))
+
+        self.mx_io.set_multi_position(tuple(cur_pos))
+
+
         # make sure the joints in the goal match the joints of the controller
         if set(self.joint_names) != set(traj.joint_names):
             res = FollowJointTrajectoryResult()

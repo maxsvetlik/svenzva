@@ -44,7 +44,15 @@ from sensor_msgs.msg import JointState
 
 class SvenzvaComplianceController():
 
-    def __init__(self, controller_namespace, mx_io, start):
+    """
+    Teaching mode should be enabled when the motors are context-switched into force control mode.
+        This mode allows full movement and compliance from a human.
+
+    Otherwise, it is assumed the arm is in current-based position control mode, where compliance is
+        intelligently turned on while the arm is not carying out a trajectory, or has failed in doing so.
+
+    """
+    def __init__(self, controller_namespace, mx_io, teaching_mode=False):
         self.mx_io = mx_io
         self.motor_state = MotorStateList()
         self.last_motor_state = MotorStateList()
@@ -52,8 +60,8 @@ class SvenzvaComplianceController():
         rospy.Subscriber("revel/model_efforts", JointState, self.model_effort_cb)
         self.gr = [1,3,3,3,10,1,1]
         self.model_torque = [0, 0, 0, 0, 0, 0, 0]
-        if start:
-            self.start(20)
+        self.teaching_mode = teaching_mode
+        self.max_current = False
 
     def motor_state_cb(self, data):
         self.last_motor_state = self.motor_state
@@ -77,6 +85,14 @@ class SvenzvaComplianceController():
         #convert from Nm to raw current value
         model_torque = self.get_raw_current(model_torque / self.gr[motor_id-1])
 
+        """
+        if not self.teaching_mode:
+            model_torque = model_torque*50
+            if 0 <= model_torque <= 10:
+                model_torque = 50
+            if -10 <= model_torque <= 0:
+                model_torque = -50
+        """
         #filter out random sign changes in current
         #if motor_id is not 1:
         if self.motor_state.motor_states[motor_id - 1].load > 0 and self.last_motor_state.motor_states[motor_id - 1].load < 0:
@@ -84,10 +100,6 @@ class SvenzvaComplianceController():
         elif self.motor_state.motor_states[motor_id - 1].load < 0 and self.last_motor_state.motor_states[motor_id - 1].load > 0:
             self.last_motor_state = self.motor_state
             return
-
-
-        #rospy.loginfo("Joint %d felt torque: %d", motor_id, self.motor_state.motor_states[motor_id - 1].load)
-        #rospy.loginfo("Joint %d model torque: %d", motor_id, model_torque)
 
 
         if abs(self.motor_state.motor_states[motor_id - 1].load - model_torque) > threshold:
@@ -108,6 +120,30 @@ class SvenzvaComplianceController():
         return int(round(tau / 1.083775 / .00336))
 
     def feel_and_react(self):
+        if not self.teaching_mode:
+
+            moving_status = self.mx_io.get_multi_moving_status(range(1,7))
+            is_moving = 0
+            for status in moving_status:
+                is_moving |= status[1] & 0x2
+
+            if is_moving and not self.max_current:
+
+                vals = []
+                #set all motor allowable currents to their maximum
+                for i in range(1,7):
+                    #self.mx_io.set_goal_pwm(i,450)
+                    vals.append( (i,1900) )
+                self.mx_io.set_multi_current(tuple(vals))
+                self.max_current = True
+                #rospy.sleep(0.1)
+                #for i in range(1,7):
+                #    self.mx_io.set_goal_pwm(i, 700)
+                return
+
+            elif is_moving and self.max_current:
+                return
+
         vals = []
         vals.append(self.feel_and_react_motor(1, 1))
         vals.append(self.feel_and_react_motor(2, 2))
@@ -126,7 +162,7 @@ class SvenzvaComplianceController():
 
         #update the motors that felt forces
         vals = []
-
+        pos = []
         for i, state in enumerate(self.model_torque):
 
             if i == 6:
@@ -137,12 +173,21 @@ class SvenzvaComplianceController():
         if len(vals) > 0:
             self.mx_io.set_multi_current(tuple(vals))
 
-        rospy.sleep(0.02)
+        self.max_current = False
 
+        rospy.sleep(0.02)
         return
 
     def rad_to_raw(self, angle):
         return int(round( angle * 4096.0 / 6.2831853 ))
+
+    def update_state(self):
+        pos = []
+
+        for i in range(1,7):
+            pos.append( (i, self.rad_to_raw(self.motor_state.motor_states[i-1].position * self.gr[i-1])))
+        self.mx_io.set_multi_position(tuple(pos))
+        rospy.sleep(0.1)
 
     def start(self):
         rospy.sleep(1.0)

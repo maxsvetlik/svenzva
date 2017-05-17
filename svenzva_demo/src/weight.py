@@ -44,6 +44,8 @@ from trajectory_msgs.msg import JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryAction, JointTrajectoryGoal, FollowJointTrajectoryAction,            FollowJointTrajectoryGoal
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Int32
+from collections import deque
+
 
 #sends a j6 command as specified in the given yaml file.
 #files must exist in the config directory of the demo package
@@ -60,13 +62,18 @@ def js_playback(filename, state_name):
     rospy.loginfo("Sending state command...")
     fkine.send_goal_and_wait(req)
 
+
 def js_cb(data):
-    global joint_states
+    global joint_states, states_list
     joint_states = data
+    states_list.append(data)
 
 def setup():
     rospy.init_node('svenzva_pick_place_demo', anonymous=False)
-    global qmap, fkine, joint_states
+    global qmap, fkine, joint_states, states_list
+
+
+    states_list = deque(maxlen=10)
 
     record = False
     joint_states = JointState()
@@ -115,10 +122,12 @@ def setup():
     goal.target_action = goal.OPEN
     gripper_client.send_goal(goal)
 
-    js_playback(fname, "approach")
+    #js_playback(fname, "approach")
 
-    js_playback(fname, "grasp")
+    #js_playback(fname, "grasp")
 
+
+    """
     goal.target_action = goal.CLOSE
     goal.target_current = 400
     gripper_client.send_goal(goal)
@@ -137,6 +146,29 @@ def setup():
 
     js_playback(fname, "approach")
     js_playback(fname, "home")
+    """
+    while not rospy.is_shutdown():
+        if gripper_react():
+            goal.target_action = goal.CLOSE
+            goal.target_current = 100
+            gripper_client.send_goal(goal)
+            break
+        rospy.sleep(0.1)
+
+def gripper_react():
+    global joint_states, states_list
+    delta = 5
+
+
+    while not rospy.is_shutdown():
+        avg = 0
+        for state in list(states_list):
+            avg += state.effort[5]
+        avg /= len(states_list)
+
+        if abs(avg - joint_states.effort[5]) > delta:
+            return True
+    return False
 
 if __name__ == '__main__':
     try:

@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="data_frequency" default="50"/>
+    <arg name="data_frequency" default="25"/>
     <arg name="namespace" value="revel"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->

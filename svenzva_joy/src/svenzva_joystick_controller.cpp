@@ -54,7 +54,6 @@ private:
 
 /*
  * Default mappings are for Xbox 360 gamepad
- * TODO: there need to be soft limits on the allowable velocity
  */
 SvenzvaArmJoystick::SvenzvaArmJoystick():
   linear_x(0),

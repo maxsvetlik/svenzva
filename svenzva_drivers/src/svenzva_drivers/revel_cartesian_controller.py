@@ -50,19 +50,19 @@ from geometry_msgs.msg import Twist
 class RevelCartesianController:
 
     def __init__(self, controller_namespace, mx_io):
-        rospy.Subscriber("/revel/eef_velocity", Twist, self.cart_vel_cb);
-        rospy.Subscriber("joint_states", JointState, self.js_cb);
+        rospy.Subscriber("/revel/eef_velocity", Twist, self.cart_vel_cb, queue_size=1);
+        rospy.Subscriber("joint_states", JointState, self.js_cb, queue_size=1);
         rospack = rospkg.RosPack()
         path = rospack.get_path("svenzva_description");
         full_path = path + "/robots/svenzva_arm.urdf";
 
         f = file(full_path, 'r')
-        robot = Robot.from_xml_string(f.read())
+        self.robot = Robot.from_xml_string(f.read())
         f.close()
 
         self.mx_io = mx_io
-        self.tree = kdl_tree_from_urdf_model(robot)
-        self.chain = self.tree.getChain('base_link', 'link_6')
+        self.tree = kdl_tree_from_urdf_model(self.robot)
+        self.chain = self.tree.getChain('base_link', 'ee_link')
         #print chain.getNrOfJoints()
         self.mNumJnts = 6
         self.jnt_q = PyKDL.JntArray(self.mNumJnts);
@@ -70,6 +70,10 @@ class RevelCartesianController:
         self.jnt_qdd = PyKDL.JntArray(self.mNumJnts);
         self.gear_ratios = [4,6,6,4,4,1]
         self.js = JointState()
+        self.epsilon = 0.001
+        self.last_twist = Twist()
+        self.last_cmd = []
+        self.last_qdot = PyKDL.JntArray(self.mNumJnts)
 
     def js_cb(self, msg):
         self.js = msg;
@@ -78,7 +82,19 @@ class RevelCartesianController:
         return int(round( angle * 4096.0 / 6.2831853) )
 
     def cart_vel_cb(self, msg):
-
+        rospy.Rate(4).sleep()
+        """
+        if msg == self.last_twist:
+            if msg.linear.x == 0 and msg.linear.y == 0 and msg.linear.z == 0:
+                return
+            tup_list = []
+            for i in range(0, self.mNumJnts):
+                tup_list.append( (i+1, self.rad_to_raw( (self.js.position[i]+self.last_qdot[i]) * self.gear_ratios[i])) )
+            self.mx_io.set_multi_position(tuple(tup_list))
+            return
+        else:
+            self.last_twist = msg
+        """
         for i in range(0, self.mNumJnts):
             self.jnt_q[i] = self.js.position[i];
             self.jnt_qd[i] = 0.0;
@@ -89,15 +105,52 @@ class RevelCartesianController:
         qdot_out = PyKDL.JntArray(self.mNumJnts)
         vel = PyKDL.Twist(trans, PyKDL.Vector(0, 0, 0))
 
-        vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
-
-        #extract positions from qdot_out
-        #send to motors
+        err = vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
+        if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
+            rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
+            return
+        elif err == -8: #PyKDL.E_SVD_FAILED:
+            rospy.loginfo("Cartesian movement solver did not converge. Skipping.")
+            return
+        elif err == 100:
+            rospy.loginfo("Cartesian movement converged but psuedoinverse in singular.")
+        elif err != 0:
+            rospy.loginfo("Unspecified error: %d", err)
+            return
 
         tup_list = []
+        vals = []
+        scale_factor = 1
         for i in range(0, self.mNumJnts):
-            rospy.loginfo("Joint at %f, moving to %f", self.js.position[i], self.js.position[i] + qdot_out[i])
-            tup_list.append( (i+1, self.rad_to_raw( (self.js.position[i]+qdot_out[i]) * self.gear_ratios[i])) )
-        print tup_list
-        self.mx_io.set_multi_position(tuple(tup_list))
+            if abs(qdot_out[i]) > 0.5:
+                #compute scale factor that would make movement valid:
+                my_scale = abs(0.5 / qdot_out[i])
+                if my_scale < scale_factor:
+                    scale_factor = my_scale
+            #vals.append( (self.js.position[i] + qdot_out[i]) * self.gear_ratios[i])
+
+            if not self.robot.joints[i].limit.lower <= (qdot_out[i]*scale_factor) + self.js.position[i] <= self.robot.joints[i].limit.upper:
+                rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
+                return
+            #    rospy.logdebug("qdot value: %f, current pos: %f", qdot_out[i], self.js.position[i])
+            #    #compute scale factor that would make movement valid:
+            #if abs(qdot_out[i]) > 0.5:
+            #    rospy.logerr("qdot value: %f, current pos: %f", qdot_out[i], self.js.position[i])
+            #    rospy.logerr("Velocity too large for joint %d. Skipping motion.", i+1)
+            #    return
+            #    rospy.loginfo("Joint at %f, moving to %f", self.js.position[i], self.js.position[i] + qdot_out[i])
+
+        if scale_factor < 1:
+            rospy.loginfo("Scaling all velocity by %f", scale_factor)
+
+        for i in range(0, self.mNumJnts):
+            if abs( scale_factor * qdot_out[i]) > self.epsilon:
+
+                tup_list.append( (i+1, self.rad_to_raw( (self.js.position[i] + (qdot_out[i] * scale_factor)) * self.gear_ratios[i])))
+
+
+        if len(tup_list) > 0:
+            self.last_cmd = tup_list
+            self.last_qdot = qdot_out
+            self.mx_io.set_multi_position(tuple(tup_list))
 
