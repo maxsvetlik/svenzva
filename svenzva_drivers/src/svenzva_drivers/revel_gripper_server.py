@@ -67,6 +67,7 @@ class RevelGripperActionServer():
 
         self._as = actionlib.SimpleActionServer("revel/gripper_action", GripperAction, execute_cb=self.gripper_cb, auto_start = False)
         self._as.start()
+        self._result = GripperResult()
 
     def gripper_cb(self, goal):
         r = rospy.Rate(0.5)
@@ -101,7 +102,7 @@ class RevelGripperActionServer():
                 success = False
                 return
         self._result.success = True
-        #self._as.set_succeeded(self._result)
+        self._as.set_succeeded(self._result)
 
     def motor_state_cb(self, data):
         self.motor_state = data.motor_states[self.motor_id - 1]

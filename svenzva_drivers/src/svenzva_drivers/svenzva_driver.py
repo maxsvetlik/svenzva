@@ -154,12 +154,12 @@ class SvenzvaDriver:
             motor_states = []
 
             try:
-                status_ar = self.dxl_io.get_sync_feedback_reduced(id_list)
+                status_ar = self.dxl_io.get_sync_feedback(id_list)
                 conseq_drops = 0
                 for index, state in enumerate(status_ar):
                     if state:
                         #convert to radians, and resolve multiplicative of gear ratio
-                        state['goal'] = 0.0 #self.raw_to_rad(state['goal']  / gr[index])
+                        state['goal'] = self.raw_to_rad(state['goal']  / gr[index])
                         state['position'] = self.raw_to_rad(state['position'] / gr[index])
                         #convert raw current to torque model (in newton meters)
                         #linear model: -9.539325804e-18 + 1.0837745x
@@ -239,7 +239,7 @@ class SvenzvaDriver:
         self.dxl_io.set_operation_mode(6, 0) #change back to 5 for pos
         self.dxl_io.set_torque_enabled(6, 1)
 
-        self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, False)
+        self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, True)
         rospy.sleep(0.1)
         Thread(target=self.compliance_controller.start).start()
 
@@ -257,8 +257,8 @@ class SvenzvaDriver:
         rospy.sleep(1.0)
         jtac.start()
 
-        action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
-        action.start()
+        self.fkine_action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
+        self.fkine_action.start()
 
         arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
 
@@ -274,7 +274,7 @@ class SvenzvaDriver:
             self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io,False)
             rospy.sleep(0.1)
             Thread(target=self.compliance_controller.start).start()
-
+            #Thread(target=self.compliance_controller.update_state).start()
 
     #TODO: read from yaml
     """
@@ -285,7 +285,7 @@ class SvenzvaDriver:
     #otherwise, the motor_states will be inaccurate
     def initialze_motor_states(self):
         teaching_mode = False
-
+        gr = [4,6,6,4,4,1,1]
         if teaching_mode:
             self.teaching_mode()
             return
@@ -293,14 +293,15 @@ class SvenzvaDriver:
         for i in range(self.min_motor_id, self.max_motor_id + 1):
             self.dxl_io.set_operation_mode(i, 5)
             self.dxl_io.set_torque_enabled(i, 1)
-            self.dxl_io.set_position_p_gain(i, 80)
+            #self.dxl_io.set_position_p_gain(i, 80)
             #self.dxl_io.set_position_i_gain(i, 0)
             #self.dxl_io.set_position_d_gain(i,0)
 
+            #self.dxl_io.set_moving_threshold(i, 1)
 
             #below are good for trajectories
-            self.dxl_io.set_acceleration_profile(i, 7)
-            self.dxl_io.set_velocity_profile(i, 80)
+            self.dxl_io.set_acceleration_profile(i, 5+gr[i-1])
+            self.dxl_io.set_velocity_profile(i, 80+gr[i-1])
             rospy.sleep(0.1)
 
 
@@ -329,8 +330,6 @@ class SvenzvaDriver:
     """
     """
     Given an array of joint positions (in radians), send request to individual servos
-    TODO: Check if enought joint positions
-          Check if motors are in joint mode and not wheel mode
     """
     def fkine_action(self, data):
         global traj_client
@@ -341,7 +340,9 @@ class SvenzvaDriver:
         point.time_from_start = rospy.Duration(5.0)
         goal.trajectory.points.append(point)
         traj_client.send_goal_and_wait(goal)
-
+        res = SvenzvaJointResult()
+        res.is_done = True
+        self.fkine_action.set_succeeded(res)
 
     @staticmethod
     def rad_to_raw(angle):
