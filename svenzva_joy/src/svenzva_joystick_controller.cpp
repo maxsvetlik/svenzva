@@ -119,18 +119,6 @@ int main(int argc, char** argv)
   gripper_action.waitForServer();
   
   while(ros::ok()){
-    /*
-    svenzva_msgs::GripperGoal goal;
-    if(last_cmd.axes[2] < 0){
-        goal.target_action = goal.CLOSE;
-        goal.target_current = 100;
-    }
-    else if(last_cmd.axes[5] < 0){
-        goal.target_action = goal.OPEN;
-    }
-
-    gripper_action.sendGoal(goal);
-    */
     ros::spinOnce();
 
   }

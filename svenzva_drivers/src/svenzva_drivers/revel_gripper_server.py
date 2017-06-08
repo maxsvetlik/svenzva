@@ -59,8 +59,8 @@ class RevelGripperActionServer():
     def __init__(self, controller_namespace, mx_io):
         self.mx_io = mx_io
         self.motor_id = 7
-        self.closing_force = 10 #mA
-        self.opening_force = -30 #mA
+        self.closing_force = 100 #mA
+        self.opening_force = -100 #mA
         self.moving_distance = 2.5 #rad
         self.motor_state = MotorState()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
