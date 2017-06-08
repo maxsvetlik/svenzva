@@ -44,9 +44,11 @@ from threading import Thread
 
 import rospy
 import actionlib
+import rospkg
+import yaml
 
 from std_msgs.msg import Float64, Int32
-from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
+from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction, SvenzvaJointAction, SvenzvaJointGoal
 from svenzva_msgs.srv import SetTorqueEnable, HomeArm
 
 class RevelArmServices():
