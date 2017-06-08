@@ -60,6 +60,7 @@ class SvenzvaComplianceController():
         rospy.Subscriber("revel/model_efforts", JointState, self.model_effort_cb)
         self.gr = [1,3,3,3,10,1,1]
         self.model_torque = [0, 0, 0, 0, 0, 0, 0]
+        self.last_model_torque = [0, 0, 0, 0, 0, 0, 0]
         self.teaching_mode = teaching_mode
         self.max_current = False
 
@@ -71,6 +72,7 @@ class SvenzvaComplianceController():
     def model_effort_cb(self, msg):
         if not msg:
             return
+        self.last_model_torque = self.model_torque
         self.model_torque = msg.effort
 
 
@@ -78,12 +80,15 @@ class SvenzvaComplianceController():
     #threshold theoretically helps smoothness
     #and offset makes the joint easier to move due to model errors
     def feel_and_react_motor(self, motor_id, threshold=3, offset=0):
-        filter_thresh = 3 # a delta larger than this value results in a discard
-        delta_pos = -50
-        delta_neg = 50
+        filter_thresh = 30 # a delta larger than this value results in a discard
+        delta_pos = -15
+        delta_neg = 15
         model_torque = self.model_torque[motor_id-1] + offset
         #convert from Nm to raw current value
-        model_torque = self.get_raw_current(model_torque / self.gr[motor_id-1])
+        if abs(self.model_torque[motor_id-1] - self.last_model_torque[motor_id-1]) > 1:
+            return None
+        model_torque = self.get_raw_current(model_torque )
+        return (motor_id, model_torque)
 
         """
         if not self.teaching_mode:
@@ -101,6 +106,7 @@ class SvenzvaComplianceController():
             self.last_motor_state = self.motor_state
             return
 
+        # temporary for testing RNE
 
         if abs(self.motor_state.motor_states[motor_id - 1].load - model_torque) > threshold:
             mag = int(math.copysign(1, model_torque - self.motor_state.motor_states[motor_id-1].load ))
@@ -120,6 +126,7 @@ class SvenzvaComplianceController():
         return int(round(tau / 1.083775 / .00336))
 
     def feel_and_react(self):
+
         if not self.teaching_mode:
 
             moving_status = self.mx_io.get_multi_moving_status(range(1,7))
@@ -146,18 +153,18 @@ class SvenzvaComplianceController():
 
         vals = []
         vals.append(self.feel_and_react_motor(1, 1))
-        vals.append(self.feel_and_react_motor(2, 2))
-        vals.append(self.feel_and_react_motor(3, 2))
-        vals.append(self.feel_and_react_motor(4, 5))
-        vals.append(self.feel_and_react_motor(5, 1))
-        vals.append(self.feel_and_react_motor(6, 10))
+        vals.append(self.feel_and_react_motor(2, 8))
+        vals.append(self.feel_and_react_motor(3, 8))
+        vals.append(self.feel_and_react_motor(4, 8))
+        vals.append(self.feel_and_react_motor(5, 2))
+        vals.append(self.feel_and_react_motor(6, 8))
 
         vals = [x for x in vals if x is not None]
 
         if len(vals) > 0:
             self.mx_io.set_multi_current(tuple(vals))
 
-        rospy.sleep(0.05)
+        rospy.sleep(0.1)
 
 
         #update the motors that felt forces
@@ -175,7 +182,7 @@ class SvenzvaComplianceController():
 
         self.max_current = False
 
-        rospy.sleep(0.02)
+        rospy.sleep(0.04)
         return
 
     def rad_to_raw(self, angle):
