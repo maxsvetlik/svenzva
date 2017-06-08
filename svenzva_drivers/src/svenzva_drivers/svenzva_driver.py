@@ -211,11 +211,6 @@ class SvenzvaDriver:
                     rospy.loginfo("Actual poling rate: %f", self.actual_rate)
             rate.sleep()
 
-    def _query_force_compliance(self):
-        self.compliance_controller.feel_and_react()
-        rospy.sleep(0.05)
-
-
     """
     This enables the teaching mode of the Revel. Teaching mode senses outside forces and assists movement in the direction
     of the felt force.
@@ -223,24 +218,29 @@ class SvenzvaDriver:
     """
     def teaching_mode(self):
 
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
+        self.dxl_io.set_torque_enabled(1, 0)
+        self.dxl_io.set_torque_enabled(2, 0)
+        self.dxl_io.set_torque_enabled(3, 0)
+        self.dxl_io.set_torque_enabled(4, 0)
+        self.dxl_io.set_torque_enabled(5, 0)
+        self.dxl_io.set_torque_enabled(6, 0)
+
 
         self.dxl_io.set_operation_mode(1, 0)
         self.dxl_io.set_operation_mode(2, 0)
         self.dxl_io.set_operation_mode(3, 0)
-
-
         self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_torque_enabled(4, 1)
-
-
         self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_torque_enabled(5, 1)
-
         self.dxl_io.set_operation_mode(6, 0)
+
+        self.dxl_io.set_torque_enabled(1, 1)
+        self.dxl_io.set_torque_enabled(2, 1)
+        self.dxl_io.set_torque_enabled(3, 1)
+        self.dxl_io.set_torque_enabled(4, 1)
+        self.dxl_io.set_torque_enabled(5, 1)
         self.dxl_io.set_torque_enabled(6, 1)
+        self.dxl_io.set_torque_enabled(7, 1)
+
 
         self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, True)
         rospy.sleep(0.1)
@@ -251,7 +251,7 @@ class SvenzvaDriver:
         global traj_client
 
         #compliance_demonstration is an experimental dynamic compliance module
-        compliance_demonstration = True
+        compliance_demonstration = rospy.get_param('~dynamic_compliance', False)
 
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
@@ -271,6 +271,7 @@ class SvenzvaDriver:
         traj_client.wait_for_server()
 
         if compliance_demonstration:
+            rospy.loginfo("Starting with experimental dynamic compliance.")
             self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io,False)
             rospy.sleep(0.1)
             Thread(target=self.compliance_controller.start).start()
@@ -287,9 +288,10 @@ class SvenzvaDriver:
     def initialze_motor_states(self):
         rospack = rospkg.RosPack()
         path = rospack.get_path('svenzva_drivers')
+        config_file = rospy.get_param('~param_file', 'control_params.yaml')
 
         params = ''
-        with open( path+"/config/control_params.yaml", 'r') as stream:
+        with open( path+"/config/"+config_file, 'r') as stream:
             try:
                 params = yaml.load(stream)
             except yaml.YAMLError as exc:
@@ -298,7 +300,7 @@ class SvenzvaDriver:
                 exit()
 
 
-        teaching_mode = False
+        teaching_mode = rospy.get_param('~teaching_mode', False)
         if teaching_mode:
             self.teaching_mode()
             return
@@ -312,6 +314,8 @@ class SvenzvaDriver:
             self.dxl_io.set_position_d_gain(i, params[i]['d'])
             self.dxl_io.set_acceleration_profile(i, params[i]['acceleration'])
             self.dxl_io.set_velocity_profile(i, params[i]['velocity'])
+            #self.dxl_io.set_goal_current(i, 1900)
+
 
 
         #set current / torque limit for gripper
@@ -346,6 +350,7 @@ class SvenzvaDriver:
         goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         point = JointTrajectoryPoint()
         point.positions = data.positions
+        #The duration and waiting for goal affect smoothness of joint actions
         point.time_from_start = rospy.Duration(5.0)
         goal.trajectory.points.append(point)
         traj_client.send_goal_and_wait(goal)
