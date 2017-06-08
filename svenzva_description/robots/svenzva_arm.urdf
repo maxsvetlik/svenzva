@@ -385,8 +385,8 @@
     <axis
       xyz="0 0 -1" />
     <limit
-      lower="0"
-      upper="6.0"
+      lower="1.2"
+      upper="7.8"
       effort="30"
       velocity="1.0" />
   </joint>
@@ -405,7 +405,7 @@
         iyy="2.31848725352889E-05"
         iyz="2.45012774391977E-20"
         izz="2.8122859649185E-05" />
-    </inertial>  
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
