@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(svenzva_drivers)
 
+# C++ 11
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall ${CMAKE_CXX_FLAGS}")
+
 find_package(catkin REQUIRED COMPONENTS
     rospy
     roscpp
@@ -14,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
     cmake_modules
     roslib
     sensor_msgs
+    hardware_interface
+    controller_manager
 )
 
 #kdl is cmake only. Must be separte
@@ -40,3 +45,6 @@ target_link_libraries(svenzva_dynamics ${catkin_LIBRARIES})
 
 add_executable(svenzva_cartesian src/svenzva_drivers/revel_cartesian_vel.cpp)
 target_link_libraries(svenzva_cartesian ${catkin_LIBRARIES})
+
+#add_executable(dynamixel_control_hw src/ros_control/dynamixel_control_hw.cpp src/ros_control/dynamixel_loop.cpp src/ros_control/dynamixel_hardware_interface.cpp)
+#target_link_libraries(dynamixel_control_hw ${catkin_LIBRARIES})

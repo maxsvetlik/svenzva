@@ -246,6 +246,31 @@ class SvenzvaDriver:
         rospy.sleep(0.1)
         Thread(target=self.compliance_controller.start).start()
 
+    def force_control_mode(self):
+
+        self.dxl_io.set_torque_enabled(1, 0)
+        self.dxl_io.set_torque_enabled(2, 0)
+        self.dxl_io.set_torque_enabled(3, 0)
+        self.dxl_io.set_torque_enabled(4, 0)
+        self.dxl_io.set_torque_enabled(5, 0)
+        self.dxl_io.set_torque_enabled(6, 0)
+
+
+        self.dxl_io.set_operation_mode(1, 0)
+        self.dxl_io.set_operation_mode(2, 0)
+        self.dxl_io.set_operation_mode(3, 0)
+        self.dxl_io.set_operation_mode(4, 0)
+        self.dxl_io.set_operation_mode(4, 0)
+        self.dxl_io.set_operation_mode(6, 0)
+
+        self.dxl_io.set_torque_enabled(1, 1)
+        self.dxl_io.set_torque_enabled(2, 1)
+        self.dxl_io.set_torque_enabled(3, 1)
+        self.dxl_io.set_torque_enabled(4, 1)
+        self.dxl_io.set_torque_enabled(5, 1)
+        self.dxl_io.set_torque_enabled(6, 1)
+        self.dxl_io.set_torque_enabled(7, 1)
+
 
     def start_modules(self):
         global traj_client
@@ -301,8 +326,15 @@ class SvenzvaDriver:
 
 
         teaching_mode = rospy.get_param('~teaching_mode', False)
+        force_control = rospy.get_param('~force_control_mode', False)
+
         if teaching_mode:
             self.teaching_mode()
+            return
+
+        if force_control:
+            self.force_control_mode()
+            rospy.spin()
             return
 
         for i in range(self.min_motor_id, self.max_motor_id + 1):
