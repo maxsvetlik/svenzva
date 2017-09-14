@@ -44,70 +44,26 @@ namespace dynamixel {
         */
     }
 
-    void DynamixelHardwareInterface::init()
+    void DynamixelHardwareInterface::init(ros::NodeHandle nh)
     {
+        ros::Publisher torque_pub = nh.advertise<std_msgs::Float64>("/tilt_controller/command", 5);
         
-        //_servos = new Vector<int>();
-        //for( int i = 0; i < 7; i++)
-        //    _servos.push_back(i+1);
+        _prev_commands.resize(1, 0.0);
+        _joint_commands.resize(1, 0.0);
+        _joint_angles.resize(1, 0.0);
+        _joint_velocities.resize(1, 0.0);
+        _joint_efforts.resize(1, 0.0);
         
-        /*
-        // get the list of available actuators
-        try {
-            // small recv timeout for auto_detect
-            _dynamixel_controller.set_recv_timeout(_scan_timeout);
-            _dynamixel_controller.open_serial(_usb_serial_interface, _baudrate);
-            _dynamixel_servos = dynamixel::auto_detect<dynamixel::protocols::Protocol1>(_dynamixel_controller);
-        }
-        catch (dynamixel::errors::Error& e) {
-            ROS_FATAL_STREAM("Caught a Dynamixel exception while trying to initialise them:\n"
-                << e.msg());
-            throw e;
-        }
-
-        // restore recv timeout
-        _dynamixel_controller.set_recv_timeout(_read_timeout);
-
-        // remove servos that are not in the _dynamixel_map (i.e. that are not used)
-        std::vector<dynamixel::DynamixelHardwareInterface::dynamixel_servo>::iterator servo_it;
-        for (servo_it = _dynamixel_servos.begin(); servo_it != _dynamixel_servos.end();) {
-            std::map<long long int, std::string>::iterator dynamixel_iterator = _dynamixel_map.find((*servo_it)->id());
-            if (dynamixel_iterator == _dynamixel_map.end()) // the actuator's name is not in the map
-                servo_it = _dynamixel_servos.erase(servo_it);
-            else
-                ++servo_it;
-        }
-
-        // Check that no actuator was declared by user but not found
-        int unnused_servos = _dynamixel_map.size() - _dynamixel_servos.size();
-        if (unnused_servos > 0) {
-            ROS_WARN_STREAM(
-                unnused_servos
-                << " servo"
-                << (unnused_servos > 1 ? "s were" : " was")
-                << " declared to the hardware interface but could not be found");
-        }
-        */
-        _prev_commands.resize(2, 0.0);
-        _joint_commands.resize(2, 0.0);
-        _joint_angles.resize(2, 0.0);
-        _joint_velocities.resize(2, 0.0);
-        _joint_efforts.resize(2, 0.0);
-        
-        // declare all available actuators to the control manager, provided a
-        // name has been given for them
-        // also enable the torque output on the actuators (sort of power up)
         try {
             
-            for (unsigned i = 0; i < 2; i++) {
+            for (unsigned i = 0; i < 1; i++) {
                 
-                //std::map<long long int, std::string>::iterator dynamixel_iterator = _dynamixel_map.find(_dynamixel_servos[i]->id());
                 if (true) //(dynamixel_iterator != _dynamixel_map.end()) // check that the actuator's name is in the map
                 {
                     // tell ros_control the in-memory address where to read the
                     // information on joint angle, velocity and effort
                     hardware_interface::JointStateHandle state_handle(
-                        "joint_" + i+1,
+                        "joint_1",
                         &_joint_angles[i],
                         &_joint_velocities[i],
                         &_joint_efforts[i]);
@@ -115,32 +71,9 @@ namespace dynamixel {
                     // tell ros_control the in-memory address to change to set new
                     // position goal for the actuator
                     hardware_interface::JointHandle pos_handle(
-                        _jnt_state_interface.getHandle("joint_" + i+1),
+                        _jnt_state_interface.getHandle("joint_1"),
                         &_joint_commands[i]);
                     _jnt_pos_interface.registerHandle(pos_handle);
-                    /*
-                    try {
-                        // enable the actuator
-                        dynamixel::StatusPacket<dynamixel::protocols::Protocol1> status;
-                        ROS_DEBUG_STREAM("Enablig joint " << _dynamixel_servos[i]->id());
-                        _dynamixel_controller.send(_dynamixel_servos[i]->set_torque_enable(1));
-                        _dynamixel_controller.recv(status);
-
-                        std::map<long long int, long long int>::iterator dynamixel_max_speed_iterator = _dynamixel_max_speed.find(_dynamixel_servos[i]->id());
-                        if (dynamixel_max_speed_iterator != _dynamixel_max_speed.end()) {
-                            dynamixel::StatusPacket<dynamixel::protocols::Protocol1> status;
-                            ROS_DEBUG_STREAM("Setting velocity limit of joint "
-                                << _dynamixel_servos[i]->id() << " to "
-                                << dynamixel_max_speed_iterator->second);
-                            _dynamixel_controller.send(_dynamixel_servos[i]->set_moving_speed(dynamixel_max_speed_iterator->second));
-                            _dynamixel_controller.recv(status);
-                        }
-                    }
-                    catch (dynamixel::errors::Error& e) {
-                        ROS_ERROR_STREAM("Caught a Dynamixel exception while initializing:\n"
-                            << e.msg());
-                    }
-                    */
                 }
                 else {
                     ROS_WARN_STREAM("Servo " << i << " was not initialised (not found in the parameters)");
@@ -168,47 +101,13 @@ namespace dynamixel {
 
         Warning: do not get any information on torque
     **/
-    void DynamixelHardwareInterface::read_joints(sensor_msgs::JointState js)
+    void DynamixelHardwareInterface::read_joints(mx_msgs::JointState js)
     {
-        ROS_INFO("Here");
-        /*
-        for (unsigned i = 0; i < _dynamixel_servos.size(); i++) {
-            dynamixel::StatusPacket<dynamixel::protocols::Protocol1> status;
-            try {
-                // current position
-                _dynamixel_controller.send(_dynamixel_servos[i]->get_present_position_angle());
-                _dynamixel_controller.recv(status);
-            }
-            catch (dynamixel::errors::Error& e) {
-                ROS_ERROR_STREAM("Caught a Dynamixel exception while getting  " << _dynamixel_map[_dynamixel_servos[i]->id()] << "'s position\n"
-                                                                                << e.msg());
-            }
-            if (status.valid()) {
-                try {
-                    _joint_angles[i] = _dynamixel_servos[i]->parse_present_position_angle(status);
-                }
-                catch (dynamixel::errors::Error& e) {
-                    ROS_ERROR_STREAM("Unpack exception while getting  " << _dynamixel_map[_dynamixel_servos[i]->id()] << "'s position\n" << e.msg());
-                }
-
-                // Apply angle correction to joint, if any
-                std::map<long long int, double>::iterator dynamixel_corrections_iterator = _dynamixel_corrections.find(_dynamixel_servos[i]->id());
-                if (dynamixel_corrections_iterator != _dynamixel_corrections.end()) {
-                    _joint_angles[i] -= dynamixel_corrections_iterator->second;
-                }
-            }
-            else {
-                ROS_WARN_STREAM("Did not receive any data when reading " << _dynamixel_map[_dynamixel_servos[i]->id()] << "'s position");
-            }
-
-        }
-        */
-        
-        ros::spinOnce();
-        for (unsigned i=0; i < js.position.size(); i++){
-            if(i >= 2)
-                return;
-            _joint_angles[i] = js.position[i];
+        for (unsigned i=0; i < 1; i++){
+            _joint_angles[i] = js.current_pos;
+            ROS_INFO("%f", _joint_angles[i]);
+            _joint_efforts[i] = js.load;
+            _joint_velocities[i] = js.velocity;
         }
         
     }
@@ -220,40 +119,10 @@ namespace dynamixel {
     **/
     std::vector<double> DynamixelHardwareInterface::write_joints()
     {
-        /*
-        for (unsigned int i = 0; i < _dynamixel_servos.size(); i++) {
-            // Sending commands only when needed
-            if (std::abs(_joint_commands[i] - _prev_commands[i]) < std::numeric_limits<double>::epsilon())
-                continue;
-            _prev_commands[i] = _joint_commands[i];
-            try {
-                dynamixel::StatusPacket<dynamixel::protocols::Protocol1> status;
-
-                double goal_pos = _joint_commands[i];
-
-                std::map<long long int, double>::iterator dynamixel_corrections_iterator = _dynamixel_corrections.find(_dynamixel_servos[i]->id());
-                if (dynamixel_corrections_iterator != _dynamixel_corrections.end()) {
-                    goal_pos += dynamixel_corrections_iterator->second;
-                }
-
-                ROS_DEBUG_STREAM("Setting position of joint " << _dynamixel_servos[i]->id() << " to " << goal_pos);
-                _dynamixel_controller.send(_dynamixel_servos[i]->reg_goal_position_angle(goal_pos));
-                _dynamixel_controller.recv(status);
-            }
-            catch (dynamixel::errors::Error& e) {
-                ROS_ERROR_STREAM("Caught a Dynamixel exception while sending new commands:\n"
-                    << e.msg());
-            }
-        }
-
-        try {
-            _dynamixel_controller.send(dynamixel::instructions::Action<dynamixel::protocols::Protocol1>(dynamixel::protocols::Protocol1::broadcast_id));
-        }
-        catch (dynamixel::errors::Error& e) {
-            ROS_ERROR_STREAM("Caught a Dynamixel exception while sending new commands:\n"
-                << e.msg());
-        }
-        */
+        _prev_commands = _joint_commands;
+        std_msgs::Float64 t_cmd;
+        t_cmd.data = _joint_commands[0];
+        //torque_pub.publish(t_cmd.data);       
         return _joint_commands;
     }
 }

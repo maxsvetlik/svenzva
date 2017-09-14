@@ -125,7 +125,7 @@ int main(int argc, char** argv)
             dynamixel_map,
             dynamixel_max_speed_map,
             dynamixel_corrections);
-    dynamixel_hw_interface->init();
+    dynamixel_hw_interface->init(nh);
 
     // Start the control loop
     dynamixel::DynamixelLoop control_loop(nh, dynamixel_hw_interface);

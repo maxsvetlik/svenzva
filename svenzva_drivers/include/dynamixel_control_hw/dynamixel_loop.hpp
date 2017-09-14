@@ -68,14 +68,14 @@ namespace dynamixel {
                 linearly increasing.
         **/
         void update(const ros::TimerEvent& e);
-        void jsCallback(const sensor_msgs::JointState::ConstPtr& js);
+        void jsCallback(const mx_msgs::JointState::ConstPtr& js);
 
     private:
         // Startup and shutdown of the internal node inside a roscpp program
         ros::NodeHandle _nh;
 
-        sensor_msgs::JointState joint_state;
-
+        mx_msgs::JointState joint_state;
+        ros::Subscriber js_sub;
         // Settings
         ros::Duration _desired_update_freq;
         double _cycle_time_error_threshold;

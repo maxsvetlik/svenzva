@@ -41,6 +41,7 @@
 #include <dynamixel_control_hw/dynamixel_loop.hpp>
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
+#include <mx_msgs/JointState.h>
 
 namespace dynamixel {
     DynamixelLoop::DynamixelLoop(
@@ -62,8 +63,8 @@ namespace dynamixel {
             throw std::runtime_error(error_message);
         }
 
-        torque_pub = np.advertise<std_msgs::Float64MultiArray>("/revel/TargetTorque", 1);
-        ros::Subscriber js_sub = np.subscribe("/joint_states", 1000, &DynamixelLoop::jsCallback, this);
+        torque_pub = np.advertise<std_msgs::Float64>("/tilt_controller/command", 1);
+        js_sub = np.subscribe("/tilt_controller/state", 10, &DynamixelLoop::jsCallback, this);
 
         // Get current time for use with first update
         clock_gettime(CLOCK_MONOTONIC, &_last_time);
@@ -73,7 +74,7 @@ namespace dynamixel {
         _non_realtime_loop = _nh.createTimer(_desired_update_freq, &DynamixelLoop::update, this);
     }
 
-    void DynamixelLoop::jsCallback(const sensor_msgs::JointState::ConstPtr& msg){
+    void DynamixelLoop::jsCallback(const mx_msgs::JointState::ConstPtr& msg){
         joint_state = *msg;
     }
 
@@ -95,30 +96,30 @@ namespace dynamixel {
         
         // Input
         // get the hardware's state
+        //ROS_INFO_STREAM(joint_state);
         _hardware_interface->read_joints(joint_state);
         
-        ROS_INFO("Here4");
 
         // Control
         // let the controller compute the new command (via the controller manager)
         _controller_manager->update(ros::Time::now(), _elapsed_time);
 
         
-        ROS_INFO("Here5");
         // Output
         // send the new command to hardware
-        //_hardware_interface->write_joints();
+        _hardware_interface->write_joints();
 
-        std_msgs::Float64MultiArray goals;
+        std_msgs::Float64 goals;
         std::vector<double> cmds = _hardware_interface->write_joints();        
-
-        ROS_INFO("Here6");
-
-        for (unsigned int i = 0; i < cmds.size(); i++) {
-            goals.data.push_back(cmds[i]);
+        
+        
+        for (unsigned int i = 0; i < 1; i++) {
+            //convert torque to motor units. 
+            double torque = (float)cmds[i] / 1.0837745;
+            torque = torque / 3.36;
+            goals.data = torque;
         }
-        ROS_INFO_STREAM(goals);
-        ROS_INFO("Here7");
-        //torque_pub.publish(goals);
+        //ROS_INFO_STREAM(goals);
+        torque_pub.publish(goals);
     }
 }

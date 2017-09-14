@@ -9,6 +9,8 @@
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <sensor_msgs/JointState.h>
+#include <mx_msgs/JointState.h>
+#include <std_msgs/Float64.h>
 
 // Library for access to the dynamixels
 #include <dynamixel/dynamixel.hpp>
@@ -47,9 +49,9 @@ namespace dynamixel {
 
         /// Find all connected devices and register those refered in dynamixel_map in the
         /// hardware interface.
-        void init();
+        void init(ros::NodeHandle nh);
 
-        void read_joints(sensor_msgs::JointState js);
+        void read_joints(mx_msgs::JointState js);
         std::vector<double> write_joints();
 
     private:
@@ -61,7 +63,7 @@ namespace dynamixel {
 
         // ROS's hardware interface instances
         hardware_interface::JointStateInterface _jnt_state_interface;
-        hardware_interface::PositionJointInterface _jnt_pos_interface;
+        hardware_interface::EffortJointInterface _jnt_pos_interface;
 
         // Memory space shared with the controller
         // It reads here the latest robot's state and put here the next desired values
@@ -71,6 +73,8 @@ namespace dynamixel {
         std::vector<double> _joint_angles; // actual joint angle
         std::vector<double> _joint_velocities; // actual joint velocity
         std::vector<double> _joint_efforts; // compulsory but not used
+
+        ros::Publisher torque_pub;
 
         // USB to serial connexion settings
         const std::string& _usb_serial_interface;

@@ -46,5 +46,5 @@ target_link_libraries(svenzva_dynamics ${catkin_LIBRARIES})
 add_executable(svenzva_cartesian src/svenzva_drivers/revel_cartesian_vel.cpp)
 target_link_libraries(svenzva_cartesian ${catkin_LIBRARIES})
 
-#add_executable(dynamixel_control_hw src/ros_control/dynamixel_control_hw.cpp src/ros_control/dynamixel_loop.cpp src/ros_control/dynamixel_hardware_interface.cpp)
-#target_link_libraries(dynamixel_control_hw ${catkin_LIBRARIES})
+add_executable(dynamixel_control_hw src/ros_control/dynamixel_control_hw.cpp src/ros_control/dynamixel_loop.cpp src/ros_control/dynamixel_hardware_interface.cpp)
+target_link_libraries(dynamixel_control_hw ${catkin_LIBRARIES})
