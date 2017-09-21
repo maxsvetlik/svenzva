@@ -46,7 +46,7 @@ private:
 
   ros::NodeHandle nh_;
 
-  int linear_x, linear_y, linear_z, angular_, rate_;
+  int linear_x, linear_y, linear_z, angular_x, angular_y, angular_z, rate_;
   double l_scale_, a_scale_;
   bool linear_mode;
   ros::Publisher vel_pub_;
@@ -62,7 +62,9 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   linear_x(0),
   linear_y(1),
   linear_z(4),
-  angular_(2),
+  angular_x(4),
+  angular_y(4),
+  angular_z(4),
   rate_(20),
   r(20)
 { 
@@ -70,7 +72,9 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   nh_.param("axis_linear_x", linear_x, linear_x);
   nh_.param("axis_linear_y", linear_y, linear_y);
   nh_.param("axis_linear_z", linear_z, linear_z);
-  nh_.param("axis_angular", angular_, angular_);
+  nh_.param("axis_angular_x", angular_x, angular_x);
+  nh_.param("axis_angular_y", angular_y, angular_y);
+  nh_.param("axis_angular_z", angular_z, angular_z);
   nh_.param("scale_angular", a_scale_, a_scale_);
   nh_.param("scale_linear", l_scale_, l_scale_);
 
@@ -85,53 +89,24 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   geometry_msgs::Twist twist;
 
-  if(linear_mode){
- 
-      twist.linear.x = l_scale_*joy->axes[linear_x];
-      twist.linear.y = l_scale_*joy->axes[linear_y];
-      twist.linear.z = l_scale_*joy->axes[linear_z];
-  }
-  else{
-      twist.angular.x = a_scale_*joy->axes[linear_x];
-      twist.angular.y = a_scale_*joy->axes[linear_y];
-      twist.angular.z = a_scale_*joy->axes[linear_z];
-  }  
+  twist.linear.x = l_scale_*joy->axes[linear_x];
+  twist.linear.y = l_scale_*joy->axes[linear_y];
+  twist.linear.z = l_scale_*joy->axes[linear_z];
+  twist.angular.x = a_scale_*joy->axes[angular_x];
+  twist.angular.y = a_scale_*joy->axes[angular_y];
+  twist.angular.z = a_scale_*joy->axes[angular_z];
   vel_pub_.publish(twist);
   last_cmd = *joy;
 
-
-  if(joy->axes[2] < 0 || joy->axes[5] < 0){
-      actionlib::SimpleActionClient<svenzva_msgs::GripperAction> gripper_action("/revel/gripper_action", true);
-      gripper_action.waitForServer();
-      
-        svenzva_msgs::GripperGoal goal;
-        if(joy->axes[2] < 0){
-            goal.target_action = goal.CLOSE;
-            goal.target_current = 500;
-        }
-        else if(joy->axes[5] < 0){
-            goal.target_action = goal.OPEN;
-        }
-
-        gripper_action.sendGoal(goal);
-  }
-
-  if(joy->buttons[0]){
-      linear_mode = !linear_mode;
-      ROS_INFO("Switching modes. Linear mode is now %d", linear_mode);
-  }
 }
 
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "svenzva_joystick_controller");
+  ros::init(argc, argv, "svenzva_2axis_controller");
   SvenzvaArmJoystick svenzva_joy;
-  actionlib::SimpleActionClient<svenzva_msgs::GripperAction> gripper_action("/revel/gripper_action", true);
-  gripper_action.waitForServer();
   
   while(ros::ok()){
     ros::spinOnce();
-
   }
 }

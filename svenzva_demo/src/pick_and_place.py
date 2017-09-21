@@ -68,7 +68,7 @@ def setup():
     rospy.init_node('svenzva_pick_place_demo', anonymous=False)
     global qmap, fkine, joint_states
 
-    record = False
+    record = True
     joint_states = JointState()
     gripper_client = actionlib.SimpleActionClient('/revel/gripper_action', GripperAction)
     joint_states_sub = rospy.Subscriber('/joint_states', JointState, js_cb, queue_size=1)
@@ -82,7 +82,7 @@ def setup():
 
     goal = GripperGoal()
 
-    filename = "pnp_demo"
+    filename = "book" #"pnp_demo"
     fname=""
     rospack = rospkg.RosPack()
     path = rospack.get_path('svenzva_demo')

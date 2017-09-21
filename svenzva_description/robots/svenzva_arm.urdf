@@ -23,7 +23,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/base_link.STL" />
+          filename="package://svenzva_description/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -37,7 +37,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/base_link.STL" />
+          filename="package://svenzva_description/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -63,7 +63,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_1.STL" />
+          filename="package://svenzva_description/meshes/link_1.STL" />
       </geometry>
       <material
         name="">
@@ -77,7 +77,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_1.STL" />
+          filename="package://svenzva_description/meshes/link_1.STL" />
       </geometry>
     </collision>
   </link>
@@ -121,7 +121,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_2.STL" />
+          filename="package://svenzva_description/meshes/link_2.STL" />
       </geometry>
       <material
         name="">
@@ -135,7 +135,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_2.STL" />
+          filename="package://svenzva_description/meshes/link_2.STL" />
       </geometry>
     </collision>
   </link>
@@ -179,7 +179,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_3.STL" />
+          filename="package://svenzva_description/meshes/link_3.STL" />
       </geometry>
       <material
         name="">
@@ -193,7 +193,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_3.STL" />
+          filename="package://svenzva_description/meshes/link_3.STL" />
       </geometry>
     </collision>
   </link>
@@ -210,8 +210,8 @@
     <axis
       xyz="0 0 -1" />
     <limit
-      lower="-2"
-      upper="2"
+      lower="-2.2"
+      upper="2.2"
       effort="30"
       velocity="1.0" />
   </joint>
@@ -238,7 +238,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_4.STL" />
+          filename="package://svenzva_description/meshes/link_4.STL" />
       </geometry>
       <material
         name="">
@@ -252,7 +252,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_4.STL" />
+          filename="package://svenzva_description/meshes/link_4.STL" />
       </geometry>
     </collision>
   </link>
@@ -269,8 +269,8 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-1.7"
-      upper="1.7"
+      lower="-2.0"
+      upper="2.0"
       effort="30"
       velocity="1.0" />
   </joint>
@@ -296,7 +296,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_5.STL" />
+          filename="package://svenzva_description/meshes/link_5.STL" />
       </geometry>
       <material
         name="">
@@ -310,7 +310,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_5.STL" />
+          filename="package://svenzva_description/meshes/link_5.STL" />
       </geometry>
     </collision>
   </link>
@@ -354,7 +354,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_6.STL" />
+          filename="package://svenzva_description/meshes/link_6.STL" />
       </geometry>
       <material
         name="">
@@ -368,7 +368,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_6.STL" />
+          filename="package://svenzva_description/meshes/link_6.STL" />
       </geometry>
     </collision>
   </link>
@@ -385,8 +385,8 @@
     <axis
       xyz="0 0 -1" />
     <limit
-      lower="1.2"
-      upper="7.8"
+      lower="0"
+      upper="8.0"
       effort="30"
       velocity="1.0" />
   </joint>
@@ -412,7 +412,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_finger_1.STL" />
+          filename="package://svenzva_description/meshes/link_finger_1.STL" />
       </geometry>
       <material
         name="">
@@ -426,7 +426,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_25_urdf6/meshes/link_finger_1.STL" />
+          filename="package://svenzva_description/meshes/link_finger_1.STL" />
       </geometry>
     </collision>
   </link>
@@ -453,7 +453,7 @@
   <joint name="ee_joint" type="fixed">
     <parent link="link_6"/>
     <child link="ee_link"/>
-    <origin xyz="0 0 0.0"/>
+    <origin xyz="0 0 -0.1" rpy="3.14159 0 0"/>
   </joint>
 
 </robot>

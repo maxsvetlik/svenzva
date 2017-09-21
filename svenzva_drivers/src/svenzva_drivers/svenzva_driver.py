@@ -212,6 +212,38 @@ class SvenzvaDriver:
             rate.sleep()
 
     """
+    This enables velocity control mode.
+    Necessary for cartesian movement for remote controls
+    """
+    def velocity_mode(self):
+
+        self.dxl_io.set_torque_enabled(1, 0)
+        self.dxl_io.set_torque_enabled(2, 0)
+        self.dxl_io.set_torque_enabled(3, 0)
+        self.dxl_io.set_torque_enabled(4, 0)
+        self.dxl_io.set_torque_enabled(5, 0)
+        self.dxl_io.set_torque_enabled(6, 0)
+        self.dxl_io.set_torque_enabled(7, 0)
+
+        self.dxl_io.set_operation_mode(1, 1)
+        self.dxl_io.set_operation_mode(2, 1)
+        self.dxl_io.set_operation_mode(3, 1)
+        self.dxl_io.set_operation_mode(4, 1)
+        self.dxl_io.set_operation_mode(5, 1)
+        self.dxl_io.set_operation_mode(6, 1)
+        self.dxl_io.set_operation_mode(7, 0)
+
+        self.dxl_io.set_torque_enabled(1, 1)
+        self.dxl_io.set_torque_enabled(2, 1)
+        self.dxl_io.set_torque_enabled(3, 1)
+        self.dxl_io.set_torque_enabled(4, 1)
+        self.dxl_io.set_torque_enabled(5, 1)
+        self.dxl_io.set_torque_enabled(6, 1)
+        self.dxl_io.set_torque_enabled(7, 1)
+
+
+
+    """
     This enables the teaching mode of the Revel. Teaching mode senses outside forces and assists movement in the direction
     of the felt force.
 
@@ -224,7 +256,7 @@ class SvenzvaDriver:
         self.dxl_io.set_torque_enabled(4, 0)
         self.dxl_io.set_torque_enabled(5, 0)
         self.dxl_io.set_torque_enabled(6, 0)
-
+        self.dxl_io.set_torque_enabled(7, 0)
 
         self.dxl_io.set_operation_mode(1, 0)
         self.dxl_io.set_operation_mode(2, 0)
@@ -232,6 +264,7 @@ class SvenzvaDriver:
         self.dxl_io.set_operation_mode(4, 0)
         self.dxl_io.set_operation_mode(4, 0)
         self.dxl_io.set_operation_mode(6, 0)
+        self.dxl_io.set_operation_mode(7, 0)
 
         self.dxl_io.set_torque_enabled(1, 1)
         self.dxl_io.set_torque_enabled(2, 1)
@@ -292,6 +325,8 @@ class SvenzvaDriver:
 
         cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
 
+        rospy.loginfo("Started Cartesian controller")
+
         traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
         traj_client.wait_for_server()
 
@@ -325,34 +360,28 @@ class SvenzvaDriver:
                 exit()
 
 
-        teaching_mode = rospy.get_param('~teaching_mode', False)
-        force_control = rospy.get_param('~force_control_mode', False)
-
+        teaching_mode = True
+        vel_mode =  False
         if teaching_mode:
             self.teaching_mode()
             return
-
-        if force_control:
-            self.force_control_mode()
-            rospy.spin()
-            return
-
-        for i in range(self.min_motor_id, self.max_motor_id + 1):
-            self.dxl_io.set_operation_mode(i, params[i]['mode'])
-            self.dxl_io.set_torque_enabled(i, 1)
-
-            self.dxl_io.set_position_p_gain(i, params[i]['p'])
-            self.dxl_io.set_position_i_gain(i, params[i]['i'])
-            self.dxl_io.set_position_d_gain(i, params[i]['d'])
-            self.dxl_io.set_acceleration_profile(i, params[i]['acceleration'])
-            self.dxl_io.set_velocity_profile(i, params[i]['velocity'])
-            #self.dxl_io.set_goal_current(i, 1900)
-
+        elif vel_mode:
+            self.velocity_mode()
+        else:
+            for i in range(self.min_motor_id, self.max_motor_id + 1):
+                self.dxl_io.set_torque_enabled(i, 0)
+                self.dxl_io.set_operation_mode(i, params[i]['mode'])
+                self.dxl_io.set_torque_enabled(i, 1)
+                self.dxl_io.set_position_p_gain(i, params[i]['p'])
+                self.dxl_io.set_position_i_gain(i, params[i]['i'])
+                self.dxl_io.set_position_d_gain(i, params[i]['d'])
+                self.dxl_io.set_acceleration_profile(i, params[i]['acceleration'])
+                self.dxl_io.set_velocity_profile(i, params[i]['velocity'])
 
 
         #set current / torque limit for gripper
         self.dxl_io.set_goal_current(7, 0)
-        self.dxl_io.set_current_limit(7, 100)
+        self.dxl_io.set_current_limit(7, 1900)
 
 
 
