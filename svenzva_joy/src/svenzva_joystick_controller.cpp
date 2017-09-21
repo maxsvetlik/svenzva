@@ -74,7 +74,7 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   nh_.param("scale_angular", a_scale_, a_scale_);
   nh_.param("scale_linear", l_scale_, l_scale_);
 
-  linear_mode = true;
+  linear_mode = false;
   r = ros::Rate(rate_);
   vel_pub_ = nh_.advertise<geometry_msgs::Twist>("revel/eef_velocity", 1);
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &SvenzvaArmJoystick::joyCallback, this);

@@ -4,7 +4,7 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="-0.0023730528889142 -0.00502093782805647 0.0237603120106106"
+        xyz="0.0 0.0 0.0237603120106106"
         rpy="0 0 0" />
       <mass
         value="0.774961748747901" />
@@ -45,7 +45,7 @@
     name="link_1">
     <inertial>
       <origin
-        xyz="-1.5879447236338E-05 -0.00709916492149038 0.0638496557944277"
+        xyz="0 -0.00709916492149038 0.0638496557944277"
         rpy="0 0 0" />
       <mass
         value="0.29849024" />
@@ -103,7 +103,7 @@
     name="link_2">
     <inertial>
       <origin
-        xyz="9.60103803698233E-07 0.107533810370169 0.00620995831245331"
+        xyz="0 0.107533810370169 0.0"
         rpy="0 0 0" />
       <mass
         value="0.327742070931929" />
@@ -144,7 +144,7 @@
     type="revolute">
     <origin
       xyz="0 -0.015113 0.1155"
-      rpy="1.5708 0 4.3282E-16" />
+      rpy="1.5708 0 0" />
     <parent
       link="link_1" />
     <child
@@ -161,7 +161,7 @@
     name="link_3">
     <inertial>
       <origin
-        xyz="-0.00271183900274356 0.0610091301092551 0.00559400264418311"
+        xyz="0.0 0.0610091301092551 0.0"
         rpy="0 0 0" />
       <mass
         value="0.280463750144268" />
@@ -202,7 +202,7 @@
     type="revolute">
     <origin
       xyz="0 0.2277 -0.009226"
-      rpy="3.1416 -1.5345E-16 3.1416" />
+      rpy="3.1416 0.0 3.1416" />
     <parent
       link="link_2" />
     <child
@@ -219,7 +219,7 @@
     name="link_4">
     <inertial>
       <origin
-        xyz="0.00313257969328566 0.0815755631836339 -0.00624759833233165"
+        xyz="0.0 0.0815755631836339 0.0"
         rpy="0 0 0" />
       <mass
         value="0.246221245377158" />
@@ -278,7 +278,7 @@
     name="link_5">
     <inertial>
       <origin
-        xyz="0.000198872480250657 0.0318752691244907 0.00773763240050632"
+        xyz="0.0 0.0318752691244907 0.0"
         rpy="0 0 0" />
       <mass
         value="0.163854288137822" />
@@ -318,7 +318,7 @@
     name="joint_5"
     type="revolute">
     <origin
-      xyz="0.00165 0.1504 -0.0015875"
+      xyz="0.0 0.1504 0.0"
       rpy="0 1.5708 0" />
     <parent
       link="link_4" />
@@ -336,8 +336,8 @@
     name="link_6">
     <inertial>
       <origin
-        xyz="0.00579554535449743 -1.99117701069566E-05 -0.0330401015812523"
-        rpy="0 0 0" />
+        xyz="0.0 0.0 0.0"
+        rpy="1.5708 0 0"/>
       <mass
         value="0.251621037329208" />
        <inertia
@@ -351,7 +351,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 0 0" />
       <geometry>
         <mesh
           filename="package://svenzva_description/meshes/link_6.STL" />
@@ -365,7 +365,7 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 0 0" />
       <geometry>
         <mesh
           filename="package://svenzva_description/meshes/link_6.STL" />
@@ -374,27 +374,27 @@
   </link>
   <joint
     name="joint_6"
-    type="revolute">
+    type="continuous">
     <origin
-      xyz="-0.01475 0.08 0.001425"
-      rpy="1.5708 3.14159 0" />
+      xyz="-0.01877 0.08 0"
+      rpy="0 3.14159 0" />
     <parent
       link="link_5" />
     <child
       link="link_6" />
     <axis
-      xyz="0 0 -1" />
+      xyz="0 1 0" />
     <limit
-      lower="0"
-      upper="8.0"
-      effort="30"
-      velocity="1.0" />
+      effort="100"
+      velocity="100.0" />
   </joint>
+
+  <!--
   <link
     name="link_7">
     <inertial>
       <origin
-        xyz="-4.33014013534461E-10 4.1616174568937E-10 0.022087275711041"
+        xyz="0 0 0.022087275711041"
         rpy="0 0 0" />
       <mass
         value="0.0478690095652066" />
@@ -432,10 +432,10 @@
   </link>
   <joint
     name="joint_7"
-    type="prismatic">
+    type="fixed">
     <origin
       xyz="0 0 -0.052509"
-      rpy="3.1416 3.0358E-17 3.1416" />
+      rpy="3.1416 0 3.1416" />
     <parent
       link="link_6" />
     <child
@@ -448,12 +448,12 @@
       effort="30"
       velocity="1.0" />
   </joint>
-
+-->
   <link name="ee_link"> </link>
   <joint name="ee_joint" type="fixed">
     <parent link="link_6"/>
     <child link="ee_link"/>
-    <origin xyz="0 0 -0.1" rpy="3.14159 0 0"/>
+    <origin xyz="0.0 0.08 0" rpy="-1.5708 0 0"/>
   </joint>
 
 </robot>

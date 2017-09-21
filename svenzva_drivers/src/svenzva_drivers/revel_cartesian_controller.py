@@ -62,19 +62,21 @@ class RevelCartesianController:
 
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
-        self.chain = self.tree.getChain('base_link', 'link_6')
+        self.chain = self.tree.getChain('base_link', 'ee_link')
         #print chain.getNrOfJoints()
         self.mNumJnts = 6
         self.jnt_q = PyKDL.JntArray(self.mNumJnts);
         self.jnt_qd = PyKDL.JntArray(self.mNumJnts);
         self.jnt_qdd = PyKDL.JntArray(self.mNumJnts);
-        self.gear_ratios = [4,6,6,4,4,1]
+        self.gear_ratios = [4,6,6,4,4,2]
         self.js = JointState()
         self.min_limit = 20.0
         self.max_limit = 20.0
         self.last_twist = Twist()
         self.last_cmd = []
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
+        #self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.001, 1000000)
+        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.00001, 10000000);
 
     def js_cb(self, msg):
         self.js = msg;
@@ -92,13 +94,12 @@ class RevelCartesianController:
             self.jnt_qd[i] = 0.0;
             self.jnt_qdd[i] = 0.0;
 
-        vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.00001, 150);
         trans = PyKDL.Vector(msg.linear.x, msg.linear.y, msg.linear.z)
         rot = PyKDL.Vector(msg.angular.x, msg.angular.y, msg.angular.z)
         qdot_out = PyKDL.JntArray(self.mNumJnts)
         vel = PyKDL.Twist(trans, rot)
-
-        err = vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
+        print vel
+        err = self.vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
         if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
             rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
             return
@@ -111,12 +112,15 @@ class RevelCartesianController:
             rospy.loginfo("Unspecified error: %d", err)
             return
 
+        print qdot_out
+
         tup_list = []
         vals = []
 
         scale_factor = 1
 
         #check if any velocities violate max_limit
+
         for i in range(0, self.mNumJnts):
             if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
                 #compute scale factor that would make movement valid:
@@ -134,19 +138,19 @@ class RevelCartesianController:
                     factors.append(my_scale)
                     #if my_scale < scale_factor:
                     #    scale_factor = my_scale
-            if len(factors) != 0:
-                scale_factor = min(factors)
+            #if len(factors) != 0:
+            #    scale_factor = min(factors)
 
         if scale_factor != 1:
             rospy.loginfo("Scaling all velocity by %f", scale_factor)
 
         for i in range(0, self.mNumJnts):
             #check if movement violates urdf joint limits
-            if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
+            #if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
                 #rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
-                rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
-                tup_list.append( (i+1, 0))
-            else:
+                #rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
+            #    tup_list.append( (i+1, 0))
+            #else:
                 tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
 
         if len(tup_list) > 0:
