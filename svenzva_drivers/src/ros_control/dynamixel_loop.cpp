@@ -64,7 +64,9 @@ namespace dynamixel {
         }
 
         torque_pub = np.advertise<std_msgs::Float64>("/tilt_controller/command", 1);
-        js_sub = np.subscribe("/tilt_controller/state", 10, &DynamixelLoop::jsCallback, this);
+        js_sub = np.subscribe("/joint_states", 10, &DynamixelLoop::jsCallback, this);
+        
+        ros::Duration(0.5).sleep();
 
         // Get current time for use with first update
         clock_gettime(CLOCK_MONOTONIC, &_last_time);
@@ -74,7 +76,7 @@ namespace dynamixel {
         _non_realtime_loop = _nh.createTimer(_desired_update_freq, &DynamixelLoop::update, this);
     }
 
-    void DynamixelLoop::jsCallback(const mx_msgs::JointState::ConstPtr& msg){
+    void DynamixelLoop::jsCallback(const sensor_msgs::JointState::ConstPtr& msg){
         joint_state = *msg;
     }
 

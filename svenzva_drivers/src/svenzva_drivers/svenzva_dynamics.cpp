@@ -171,7 +171,6 @@ int main(int argc, char** argv){
 
     ros::NodeHandle n;
     
-    int rate = 10;
     //n.param<int>("~publish_rate", rate, 20);
     for(int i = 0; i < 7; i++)
         joint_states.effort.push_back(0.0);

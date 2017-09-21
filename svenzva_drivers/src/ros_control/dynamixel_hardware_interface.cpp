@@ -46,14 +46,11 @@ namespace dynamixel {
 
     void DynamixelHardwareInterface::init(ros::NodeHandle nh)
     {
-        ros::Publisher torque_pub = nh.advertise<std_msgs::Float64>("/tilt_controller/command", 5);
-        
         _prev_commands.resize(1, 0.0);
         _joint_commands.resize(1, 0.0);
         _joint_angles.resize(1, 0.0);
         _joint_velocities.resize(1, 0.0);
         _joint_efforts.resize(1, 0.0);
-        
         try {
             
             for (unsigned i = 0; i < 1; i++) {
@@ -91,7 +88,6 @@ namespace dynamixel {
         }
 
         // At startup robot should keep the pose it has
-        
     }
 
     /** Copy joint's information to memory
@@ -101,13 +97,12 @@ namespace dynamixel {
 
         Warning: do not get any information on torque
     **/
-    void DynamixelHardwareInterface::read_joints(mx_msgs::JointState js)
+    void DynamixelHardwareInterface::read_joints(sensor_msgs::JointState js)
     {
         for (unsigned i=0; i < 1; i++){
-            _joint_angles[i] = js.current_pos;
-            ROS_INFO("%f", _joint_angles[i]);
-            _joint_efforts[i] = js.load;
-            _joint_velocities[i] = js.velocity;
+            _joint_angles[i] = js.position[i];
+            _joint_efforts[i] = js.effort[i];
+            _joint_velocities[i] = js.velocity[i];
         }
         
     }

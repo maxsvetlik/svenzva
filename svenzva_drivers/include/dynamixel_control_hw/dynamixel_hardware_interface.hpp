@@ -9,7 +9,6 @@
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <sensor_msgs/JointState.h>
-#include <mx_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
 // Library for access to the dynamixels
@@ -51,7 +50,7 @@ namespace dynamixel {
         /// hardware interface.
         void init(ros::NodeHandle nh);
 
-        void read_joints(mx_msgs::JointState js);
+        void read_joints(sensor_msgs::JointState js);
         std::vector<double> write_joints();
 
     private:
