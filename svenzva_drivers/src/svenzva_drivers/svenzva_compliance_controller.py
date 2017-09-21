@@ -183,7 +183,7 @@ class SvenzvaComplianceController():
             #    break
 
             if i == 0:
-                vals.append( ( i+1, self.get_raw_current(state / self.gr[i]) ))
+                vals.append( ( i+1, self.get_raw_current((state+self.pos_cmd) / self.gr[i]) ))
             else:
                 vals.append( ( i+1, self.get_raw_current(state / self.gr[i]) ))
 
@@ -194,7 +194,7 @@ class SvenzvaComplianceController():
 
         rospy.sleep(0.05)
         return
-
+    """
     def pos_controller(self, motor_id):
         error = 0
         torque = 0
@@ -211,8 +211,9 @@ class SvenzvaComplianceController():
 
         torque = p_gain * error + d_gain * ((error - self.pre_error / 0.004))
         self.pre_error = error
-        print "sending: " + str(torque)
+        #print "sending: " + str(torque)
         return self.get_raw_current(torque)
+    """
 
     def rad_to_raw(self, angle):
         return int(round( angle * 4096.0 / 6.2831853 ))

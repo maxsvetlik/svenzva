@@ -360,7 +360,7 @@ class SvenzvaDriver:
                 exit()
 
 
-        teaching_mode = False
+        teaching_mode = True
         vel_mode =  False
         if teaching_mode:
             self.teaching_mode()

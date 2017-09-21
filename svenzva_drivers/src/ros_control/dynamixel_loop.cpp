@@ -63,7 +63,7 @@ namespace dynamixel {
             throw std::runtime_error(error_message);
         }
 
-        torque_pub = np.advertise<std_msgs::Float64>("/tilt_controller/command", 1);
+        torque_pub = np.advertise<std_msgs::Float64>("/revel/motor1/pos_cmd", 1);
         js_sub = np.subscribe("/joint_states", 10, &DynamixelLoop::jsCallback, this);
         
         ros::Duration(0.5).sleep();
