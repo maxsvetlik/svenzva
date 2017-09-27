@@ -4,7 +4,7 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="0.0 0.0 0.0237603120106106"
+        xyz="0.0 0.0 0.02376"
         rpy="0 0 0" />
       <mass
         value="0.774961748747901" />
@@ -45,7 +45,7 @@
     name="link_1">
     <inertial>
       <origin
-        xyz="0 -0.00709916492149038 0.0638496557944277"
+        xyz="0 -0.007 0.0638"
         rpy="0 0 0" />
       <mass
         value="0.29849024" />
@@ -103,7 +103,7 @@
     name="link_2">
     <inertial>
       <origin
-        xyz="0 0.107533810370169 0.0"
+        xyz="0 0.10753 0.0"
         rpy="0 0 0" />
       <mass
         value="0.327742070931929" />
@@ -143,7 +143,7 @@
     name="joint_2"
     type="revolute">
     <origin
-      xyz="0 -0.015113 0.1155"
+      xyz="0 0 0.1155"
       rpy="1.5708 0 0" />
     <parent
       link="link_1" />
@@ -161,7 +161,7 @@
     name="link_3">
     <inertial>
       <origin
-        xyz="0.0 0.0610091301092551 0.0"
+        xyz="0.0 0.06100 0.0"
         rpy="0 0 0" />
       <mass
         value="0.280463750144268" />
@@ -201,7 +201,7 @@
     name="joint_3"
     type="revolute">
     <origin
-      xyz="0 0.2277 -0.009226"
+      xyz="0 0.2277 0"
       rpy="3.1416 0.0 3.1416" />
     <parent
       link="link_2" />
@@ -219,7 +219,7 @@
     name="link_4">
     <inertial>
       <origin
-        xyz="0.0 0.0815755631836339 0.0"
+        xyz="0.0 0.0815 0.0"
         rpy="0 0 0" />
       <mass
         value="0.246221245377158" />
@@ -260,7 +260,7 @@
     name="joint_4"
     type="revolute">
     <origin
-      xyz="-0.00165 0.1377 -0.000388"
+      xyz="0 0.1377 0"
       rpy="0 1.5708 0" />
     <parent
       link="link_3" />
@@ -278,7 +278,7 @@
     name="link_5">
     <inertial>
       <origin
-        xyz="0.0 0.0318752691244907 0.0"
+        xyz="0.0 0.03187 0.0"
         rpy="0 0 0" />
       <mass
         value="0.163854288137822" />
@@ -337,7 +337,7 @@
     <inertial>
       <origin
         xyz="0.0 0.0 0.0"
-        rpy="1.5708 0 0"/>
+        rpy="3.14159 0 0"/>
       <mass
         value="0.251621037329208" />
        <inertia
@@ -351,7 +351,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="1.5708 0 0" />
+        rpy="3.14159 0 0" />
       <geometry>
         <mesh
           filename="package://svenzva_description/meshes/link_6.STL" />
@@ -376,14 +376,14 @@
     name="joint_6"
     type="continuous">
     <origin
-      xyz="-0.01877 0.08 0"
-      rpy="0 3.14159 0" />
+      xyz="0 0.08 0"
+      rpy="-1.5807 0 0" />
     <parent
       link="link_5" />
     <child
       link="link_6" />
     <axis
-      xyz="0 1 0" />
+      xyz="0 0 1" />
     <limit
       effort="100"
       velocity="100.0" />
@@ -453,7 +453,7 @@
   <joint name="ee_joint" type="fixed">
     <parent link="link_6"/>
     <child link="ee_link"/>
-    <origin xyz="0.0 0.08 0" rpy="-1.5708 0 0"/>
+    <origin xyz="0.0 0 0.08" rpy="0 0 0"/>
   </joint>
 
 </robot>
