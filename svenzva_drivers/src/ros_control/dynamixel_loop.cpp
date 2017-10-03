@@ -115,13 +115,14 @@ namespace dynamixel {
         std::vector<double> cmds = _hardware_interface->write_joints();        
         
         
-        for (unsigned int i = 0; i < 1; i++) {
-            //convert torque to motor units. 
+        for (unsigned int i = 0; i < 6; i++) {
+            //convert torque to motor units.
             double torque = (float)cmds[i] / 1.0837745;
             torque = torque / 3.36;
+            ROS_INFO("%f", torque);
             goals.data = torque;
         }
-        //ROS_INFO_STREAM(goals);
-        torque_pub.publish(goals);
+        ROS_INFO("\n");
+        //torque_pub.publish(goals);
     }
 }

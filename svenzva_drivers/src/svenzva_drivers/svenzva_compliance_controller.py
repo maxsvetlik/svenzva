@@ -161,11 +161,11 @@ class SvenzvaComplianceController():
 
         vals = []
         vals.append(self.feel_and_react_motor(1, 1))
-        vals.append(self.feel_and_react_motor(2, 2))
-        vals.append(self.feel_and_react_motor(3, 2))
-        vals.append(self.feel_and_react_motor(4, 5))
-        vals.append(self.feel_and_react_motor(5, 1))
-        vals.append(self.feel_and_react_motor(6, 10))
+        #vals.append(self.feel_and_react_motor(2, 2))
+        #vals.append(self.feel_and_react_motor(3, 2))
+        #vals.append(self.feel_and_react_motor(4, 5))
+        #vals.append(self.feel_and_react_motor(5, 1))
+        #vals.append(self.feel_and_react_motor(6, 10))
         vals = [x for x in vals if x is not None]
 
         if len(vals) > 0:

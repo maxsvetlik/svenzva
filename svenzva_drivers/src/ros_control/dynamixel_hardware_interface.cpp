@@ -46,21 +46,22 @@ namespace dynamixel {
 
     void DynamixelHardwareInterface::init(ros::NodeHandle nh)
     {
-        _prev_commands.resize(1, 0.0);
-        _joint_commands.resize(1, 0.0);
-        _joint_angles.resize(1, 0.0);
-        _joint_velocities.resize(1, 0.0);
-        _joint_efforts.resize(1, 0.0);
+        _prev_commands.resize(6, 0.0);
+        _joint_commands.resize(6, 0.0);
+        _joint_angles.resize(6, 0.0);
+        _joint_velocities.resize(6, 0.0);
+        _joint_efforts.resize(6, 0.0);
         try {
             
-            for (unsigned i = 0; i < 1; i++) {
+            for (unsigned i = 0; i < 6; i++) {
                 
                 if (true) //(dynamixel_iterator != _dynamixel_map.end()) // check that the actuator's name is in the map
                 {
+                    std::string j_name = "joint_" + std::to_string(i+1);
                     // tell ros_control the in-memory address where to read the
                     // information on joint angle, velocity and effort
                     hardware_interface::JointStateHandle state_handle(
-                        "joint_1",
+                        j_name,
                         &_joint_angles[i],
                         &_joint_velocities[i],
                         &_joint_efforts[i]);
@@ -68,7 +69,7 @@ namespace dynamixel {
                     // tell ros_control the in-memory address to change to set new
                     // position goal for the actuator
                     hardware_interface::JointHandle pos_handle(
-                        _jnt_state_interface.getHandle("joint_1"),
+                        _jnt_state_interface.getHandle(j_name),
                         &_joint_commands[i]);
                     _jnt_pos_interface.registerHandle(pos_handle);
                 }
@@ -80,7 +81,7 @@ namespace dynamixel {
             // register the hardware interfaces
             registerInterface(&_jnt_state_interface);
             registerInterface(&_jnt_pos_interface);
-        
+            
         }
         catch (const ros::Exception& e) {
             ROS_ERROR_STREAM("Could not initialize hardware interface:\n\tTrace: " << e.what());
@@ -99,7 +100,7 @@ namespace dynamixel {
     **/
     void DynamixelHardwareInterface::read_joints(sensor_msgs::JointState js)
     {
-        for (unsigned i=0; i < 1; i++){
+        for (unsigned i=0; i < 6; i++){
             _joint_angles[i] = js.position[i];
             _joint_efforts[i] = js.effort[i];
             _joint_velocities[i] = js.velocity[i];
@@ -115,9 +116,6 @@ namespace dynamixel {
     std::vector<double> DynamixelHardwareInterface::write_joints()
     {
         _prev_commands = _joint_commands;
-        std_msgs::Float64 t_cmd;
-        t_cmd.data = _joint_commands[0];
-        //torque_pub.publish(t_cmd.data);       
         return _joint_commands;
     }
 }

@@ -1,6 +1,6 @@
 <launch>
 
-    <arg name="data_frequency" default="20"/>
+    <arg name="data_frequency" default="50"/>
     <arg name="namespace" value="revel"/>
     <arg name="param_file" default="control_params.yaml"/>
     
@@ -28,7 +28,7 @@
         <param name="dynamic_compliance" value="$(arg dynamic_compliance)"/>
     </node>
 
-    <!-- Start dynamics module -->
+    <!-- Start dynamics module 
     <node name="revel_dynamic_model" type="svenzva_dynamics" pkg="svenzva_drivers" output="screen"/>
-
+    -->
 </launch>

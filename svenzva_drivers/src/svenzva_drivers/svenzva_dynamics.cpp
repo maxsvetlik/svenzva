@@ -47,7 +47,7 @@
 sensor_msgs::JointState joint_states;
 KDL::Tree my_tree;
 KDL::Chain chain;
-int mNumJnts = 6;
+int mNumJnts = 1;
 // Get some joint pos, vel, acc values
 KDL::JntArray jnt_q(mNumJnts);
 KDL::JntArray jnt_qd(mNumJnts);
@@ -172,7 +172,7 @@ int main(int argc, char** argv){
     ros::NodeHandle n;
     
     //n.param<int>("~publish_rate", rate, 20);
-    for(int i = 0; i < 7; i++)
+    for(int i = 0; i < 1; i++)
         joint_states.effort.push_back(0.0);
 
     ros::Subscriber js_sub = n.subscribe("joint_states", 1, js_cb);
@@ -188,7 +188,7 @@ int main(int argc, char** argv){
        ROS_ERROR("Failed to construct kdl tree");
        return false;
     }
-    my_tree.getChain("base_link", "link_6", chain);
+    my_tree.getChain("base_link", "link_1", chain);
     ROS_INFO("Kinematic chain expects %d joints", chain.getNrOfJoints());
 
     KDL::Vector gravity(0.0, 0.0, -10.1);

@@ -1,15 +1,40 @@
 dynamixel_controllers:
   joint_state_controller:
     type: joint_state_controller/JointStateController
-    publish_rate: 10
+    publish_rate: 50
 
-  first_position_controller:
+  joint_1:
     type: effort_controllers/JointPositionController
     joint: joint_1
-    pid: {p: 100.0, i: 0.1, d: 14.0}
+    pid: {p: 10.0, i: 0.1, d: 1.0}
+
+  joint_2:
+    type: effort_controllers/JointPositionController
+    joint: joint_2
+    pid: {p: 10.0, i: 0.1, d: 1.0}
+
+  joint_3:
+    type: effort_controllers/JointPositionController
+    joint: joint_3
+    pid: {p: 10.0, i: 0.1, d: 1.0}
+
+  joint_4:
+    type: effort_controllers/JointPositionController
+    joint: joint_4
+    pid: {p: 10.0, i: 0.1, d: 1.0}
+
+  joint_5:
+    type: effort_controllers/JointPositionController
+    joint: joint_5
+    pid: {p: 10.0, i: 0.1, d: 1.0}
+
+  joint_6:
+    type: effort_controllers/JointPositionController
+    joint: joint_6
+    pid: {p: 10.0, i: 0.1, d: 1.0}
 
 dynamixel_control_hw:
-  loop_frequency: 10
+  loop_frequency: 50
   cycle_time_error_threshold: 0.2
   serial_interface: /dev/ttyUSB0
   baudrate: 1000000 # in bauds
