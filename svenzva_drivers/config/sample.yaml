@@ -6,32 +6,32 @@ dynamixel_controllers:
   joint_1:
     type: effort_controllers/JointPositionController
     joint: joint_1
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 0.5, i: 0.01, d: 0.1}
 
   joint_2:
     type: effort_controllers/JointPositionController
     joint: joint_2
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 0.5, i: 0.01, d: 0.1}
 
   joint_3:
     type: effort_controllers/JointPositionController
     joint: joint_3
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 1.0, i: 0.1, d: 1.0}
 
   joint_4:
     type: effort_controllers/JointPositionController
     joint: joint_4
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 1.0, i: 0.1, d: 1.0}
 
   joint_5:
     type: effort_controllers/JointPositionController
     joint: joint_5
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 1.0, i: 0.1, d: 1.0}
 
   joint_6:
     type: effort_controllers/JointPositionController
     joint: joint_6
-    pid: {p: 10.0, i: 0.1, d: 1.0}
+    pid: {p: 1.0, i: 0.1, d: 1.0}
 
 dynamixel_control_hw:
   loop_frequency: 50

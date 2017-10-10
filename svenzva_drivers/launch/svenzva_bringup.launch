@@ -1,12 +1,12 @@
 <launch>
 
-    <arg name="data_frequency" default="50"/>
+    <arg name="data_frequency" default="100"/>
     <arg name="namespace" value="revel"/>
     <arg name="param_file" default="control_params.yaml"/>
     
     <!-- The following controls arm compliance. Only one should be turned on at a time -->
     <arg name="dynamic_compliance" default="False"/>
-    <arg name="teaching_mode" default="False"/>
+    <arg name="teaching_mode" default="True"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->
     <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7 ]</rosparam>
@@ -19,6 +19,9 @@
         <param name="arm_namespace" value="$(arg namespace)"/>
     </node>
 
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" >
+    </node>
+
     <!-- Start the arm driver -->
     <node name="revel_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
         <param name="arm_namespace" value="$(arg namespace)"/>
@@ -28,7 +31,7 @@
         <param name="dynamic_compliance" value="$(arg dynamic_compliance)"/>
     </node>
 
-    <!-- Start dynamics module 
+    <!-- Start dynamics module-->  
     <node name="revel_dynamic_model" type="svenzva_dynamics" pkg="svenzva_drivers" output="screen"/>
-    -->
+
 </launch>

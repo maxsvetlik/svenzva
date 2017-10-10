@@ -63,7 +63,7 @@ namespace dynamixel {
             throw std::runtime_error(error_message);
         }
 
-        torque_pub = np.advertise<std_msgs::Float64>("/revel/motor1/pos_cmd", 1);
+        torque_pub = np.advertise<std_msgs::Float64MultiArray>("/revel/motor_controller/pos_torque", 1);
         js_sub = np.subscribe("/joint_states", 10, &DynamixelLoop::jsCallback, this);
         
         ros::Duration(0.5).sleep();
@@ -111,18 +111,16 @@ namespace dynamixel {
         // send the new command to hardware
         _hardware_interface->write_joints();
 
-        std_msgs::Float64 goals;
+        std_msgs::Float64MultiArray goals;
         std::vector<double> cmds = _hardware_interface->write_joints();        
-        
         
         for (unsigned int i = 0; i < 6; i++) {
             //convert torque to motor units.
-            double torque = (float)cmds[i] / 1.0837745;
-            torque = torque / 3.36;
-            ROS_INFO("%f", torque);
-            goals.data = torque;
+            //double torque = (float)cmds[i] / 1.0837745;
+            //torque = torque / .00336;
+            double torque = cmds[i];
+            goals.data.push_back(torque);
         }
-        ROS_INFO("\n");
-        //torque_pub.publish(goals);
+        torque_pub.publish(goals);
     }
 }
