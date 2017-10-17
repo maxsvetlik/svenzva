@@ -33,16 +33,22 @@ dynamixel_controllers:
     joint: joint_6
     pid: {p: 1.0, i: 0.03, d: 0.04}
 
-dynamixel_control_hw:
-  loop_frequency: 50
-  cycle_time_error_threshold: 0.2
-  serial_interface: /dev/ttyUSB0
-  baudrate: 1000000 # in bauds
-  dynamixel_timeout: 0.05 # in seconds
-  dynamixel_scanning: 0.05 # in seconds
-  # correspondance between hardware IDs of the actuators and their names in ROS
-  hardware_mapping:
-    first: 1
-  # offset to be added, in ticks, to the position of an actuator
-  hardware_corrections:
-    "26": 45
+revel:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - joint_1
+    - joint_2
+    - joint_3
+    - joint_4
+    - joint_5
+    - joint_6
+
+  gains: # Required because we're controlling an effort interface
+    joint_1: {p: 30,  d: 5.0, i: 1.5, i_clamp: 1}
+    joint_2: {p: 100,  d: 3, i: 3, i_clamp: 1}
+    joint_3: {p: 50,  d: 3.5, i: 3, i_clamp: 1}
+    joint_4: {p: 20,  d: 0.8, i: 0.5, i_clamp: 1}
+    joint_5: {p: 10,  d: 0.3, i: 1, i_clamp: 1}
+    joint_6: {p: 1,  d: 0.04, i: 0.03, i_clamp: 1}
+
+  state_publish_rate:  25            # Override default

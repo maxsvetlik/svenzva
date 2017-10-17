@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>svenzva_simulation</name>
+  <version>0.0.1</version>
+  <description>Files relating to running 3D simulations of Svenzva manipulators</description>
+
+  <maintainer email="max@svenzva.com">Max Svetlik</maintainer>
+
+  <license>BSD</license>
+
+  <author email="max@svenzva.com">Max Svetlik</author>
+
+
+  <build_depend>rospy</build_depend> 
+  <build_depend>gazebo</build_depend> 
+  <run_depend>rospy</run_depend> 
+  <run_depend>gazebo</run_depend> 
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+  <export></export>
+</package>
