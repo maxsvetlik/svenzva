@@ -389,13 +389,12 @@
       velocity="100.0" />
   </joint>
 
-  <!--
   <link
-    name="link_7">
+    name="link_finger1">
     <inertial>
       <origin
-        xyz="0 0 0.022087275711041"
-        rpy="0 0 0" />
+        xyz="-0.00325 0.028 -0.095"
+        rpy="3.14159 0 0" />
       <mass
         value="0.0478690095652066" />
        <inertia
@@ -408,11 +407,11 @@
     </inertial>  
     <visual>
       <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
+        xyz="-0.00325 0.028 -0.095"
+        rpy="3.14159 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_finger_1.STL" />
+          filename="package://svenzva_description/meshes/finger.STL" />
       </geometry>
       <material
         name="">
@@ -426,34 +425,95 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://svenzva_description/meshes/link_finger_1.STL" />
+          filename="package://svenzva_description/meshes/finger.STL" />
       </geometry>
     </collision>
   </link>
   <joint
     name="joint_7"
-    type="fixed">
+    type="prismatic">
     <origin
       xyz="0 0 -0.052509"
-      rpy="3.1416 0 3.1416" />
+      rpy="3.1416 3.0358E-17 3.1416" />
     <parent
       link="link_6" />
     <child
-      link="link_7" />
+      link="link_finger1" />
     <axis
       xyz="-1 0 0" />
     <limit
-      lower="-0.05"
+      lower="0"
       upper="0.05"
       effort="30"
       velocity="1.0" />
   </joint>
--->
+
+  <link
+    name="link_finger2">
+    <inertial>
+      <origin
+        xyz="0.00325 -0.028 -0.095"
+        rpy="3.14159 0 0" />
+      <mass
+        value="0.0478690095652066" />
+       <inertia
+        ixx="2.65185843160199E-05"
+        ixy="6.98858074467049E-06"
+        ixz="-4.32758524413134E-20"
+        iyy="2.31848725352889E-05"
+        iyz="2.45012774391977E-20"
+        izz="2.8122859649185E-05" />
+    </inertial>  
+    <visual>
+      <origin
+        xyz="0.00325 -0.028 -0.095"
+        rpy="3.14159 0 3.14159" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_8"
+    type="prismatic">
+    <origin
+      xyz="0 0 -0.052509"
+      rpy="3.1416 3.0358E-17 3.1416" />
+    <parent
+      link="link_6" />
+    <child
+      link="link_finger2" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-0.05"
+      upper="0.0"
+      effort="30"
+      velocity="1.0" />
+  </joint>
+
+
+<!--
   <link name="ee_link"> </link>
   <joint name="ee_joint" type="fixed">
     <parent link="link_6"/>
     <child link="ee_link"/>
     <origin xyz="0.0 0 0.08" rpy="0 0 0"/>
   </joint>
-
+-->
 </robot>
