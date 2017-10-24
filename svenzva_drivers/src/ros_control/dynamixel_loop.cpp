@@ -34,6 +34,7 @@
 
 /* Original Author: Dave Coleman (https://github.com/davetcoleman/ros_control_boilerplate) */
 /* Edited by: Dorian Goepp (https://github.com/resibots/dynamixel_control_hw/) */
+/* Edited by: Max Svetlik (https://github.com/svenzvarobotics) */
 
 // for runtime_error
 #include <stdexcept>

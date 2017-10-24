@@ -34,6 +34,7 @@
 
 /* Original Author: Dave Coleman (https://github.com/davetcoleman/ros_control_boilerplate) */
 /* Edited by: Dorian Goepp (https://github.com/resibots/dynamixel_control_hw/) */
+/* Edited by: Max Svetlik (https://github.com/svenzvarobotics/) */
 #include <sstream>
 
 #include <dynamixel_control_hw/dynamixel_loop.hpp>
@@ -49,63 +50,6 @@ int main(int argc, char** argv)
 
     ros::NodeHandle nhParams("~");
     std::string sub_namespace = nhParams.getNamespace();
-    bool got_all_params = true;
-
-    std::string usb_serial_interface;
-    got_all_params &= nhParams.getParam("serial_interface", usb_serial_interface);
-    int baudrate; // in bauds
-    got_all_params &= nhParams.getParam("baudrate", baudrate);
-    double dynamixel_timeout; // in seconds
-    got_all_params &= nhParams.getParam("dynamixel_timeout", dynamixel_timeout);
-    double dynamixel_scanning; // in seconds
-    bool dyn_scan = nhParams.getParam("dynamixel_scanning", dynamixel_scanning);
-    if (!dyn_scan) {
-        ROS_WARN_STREAM("Dynamixel scanning timeout parameter was not found. Setting to default: 0.05s.");
-        dynamixel_scanning = 0.05;
-    }
-
-    // Retrieve the map from joint name to hardware-related ID
-    // It has to be inverted, putting the ID as a key, for later use
-    std::map<long long int, std::string> dynamixel_map;
-    std::map<std::string, int> map_param; // temporary map, from parameter server
-    got_all_params &= nhParams.getParam("hardware_mapping", map_param);
-    std::map<std::string, int>::iterator map_param_i;
-    for (map_param_i = map_param.begin(); map_param_i != map_param.end(); map_param_i++) {
-        dynamixel_map[(long long int)map_param_i->second] = map_param_i->first;
-    }
-
-    // Retrieve the map for max speed (ID: max speed)
-    std::map<long long int, long long int> dynamixel_max_speed_map;
-    std::map<std::string, int> max_speed_param; // temporary map, from parameter server
-    nhParams.getParam("max_speed", max_speed_param);
-    std::map<std::string, int>::iterator max_speed_param_i;
-    for (max_speed_param_i = max_speed_param.begin(); max_speed_param_i != max_speed_param.end(); max_speed_param_i++) {
-        long long int k;
-        std::istringstream(max_speed_param_i->first) >> k;
-        dynamixel_max_speed_map[k] = (long long int)max_speed_param_i->second;
-    }
-
-    // Retrieve the map with angle corrections (ID: correction in radians)
-    std::map<long long int, double> dynamixel_corrections;
-    std::map<std::string, double> map_corrections; // temporary map, from parameter server
-    nhParams.getParam("hardware_corrections", map_corrections);
-    std::map<std::string, double>::iterator map_cor_i;
-    for (map_cor_i = map_corrections.begin(); map_cor_i != map_corrections.end(); map_cor_i++) {
-        long long int k;
-        std::istringstream(map_cor_i->first) >> k;
-        dynamixel_corrections[k] = map_cor_i->second;
-    }
-
-    if (!got_all_params) {
-        std::string error_message = "One or more of the following parameters were"
-                                    " not set:\n\t/"
-            + sub_namespace + "/serial_interface /" + sub_namespace + "/baudrate"
-                                                                      "/"
-            + sub_namespace + "/dynamixel_timeout /" + sub_namespace + "/hardware_mapping"
-            + "/" + sub_namespace + "/max_speed" + "/" + sub_namespace + "/hardware_corrections";
-        ROS_FATAL_STREAM(error_message);
-        return 1;
-    }
 
     // Run the hardware interface node
     // -------------------------------
@@ -117,14 +61,7 @@ int main(int argc, char** argv)
 
     // Create the hardware interface specific to your robot
     boost::shared_ptr<dynamixel::DynamixelHardwareInterface>
-        dynamixel_hw_interface = boost::make_shared<dynamixel::DynamixelHardwareInterface>(
-            usb_serial_interface,
-            baudrate,
-            dynamixel_timeout,
-            dynamixel_scanning,
-            dynamixel_map,
-            dynamixel_max_speed_map,
-            dynamixel_corrections);
+        dynamixel_hw_interface = boost::make_shared<dynamixel::DynamixelHardwareInterface>();
     dynamixel_hw_interface->init(nh);
 
     // Start the control loop

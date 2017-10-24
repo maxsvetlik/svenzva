@@ -6,42 +6,14 @@
 #include <math.h>
 
 /* Written by: Dorian Goepp (https://github.com/resibots/dynamixel_control_hw/) */
+/* Edited by: Max Svetlik (https://github.com/svenzvarobotics/) */
 
 namespace dynamixel {
-    DynamixelHardwareInterface::DynamixelHardwareInterface(const std::string& usb_serial_interface,
-        const int& baudrate,
-        const float& read_timeout,
-        const float& scan_timeout,
-        std::map<long long int, std::string> dynamixel_map,
-        std::map<long long int, long long int> dynamixel_max_speed,
-        std::map<long long int, double> dynamixel_corrections)
-        : _usb_serial_interface(usb_serial_interface),
-          _baudrate(get_baudrate(baudrate)),
-          _read_timeout(read_timeout),
-          _scan_timeout(scan_timeout),
-          _dynamixel_map(dynamixel_map),
-          _dynamixel_max_speed(dynamixel_max_speed),
-          _dynamixel_corrections(dynamixel_corrections)
-    {
-    }
-
+    DynamixelHardwareInterface::DynamixelHardwareInterface() 
+    {}
+    
     DynamixelHardwareInterface::~DynamixelHardwareInterface()
     {
-        /*
-        // stop all actuators
-        try {
-            for (auto dynamixel_servo : _dynamixel_servos) {
-                dynamixel::StatusPacket<dynamixel::protocols::Protocol1> status;
-                _dynamixel_controller.send(dynamixel_servo->set_torque_enable(0));
-                _dynamixel_controller.recv(status);
-            }
-        }
-        catch (dynamixel::errors::Error& e) {
-            ROS_FATAL_STREAM("Caught a Dynamixel exception while trying to power them off:\n"
-                << e.msg());
-            throw e;
-        }
-        */
     }
 
     void DynamixelHardwareInterface::init(ros::NodeHandle nh)
@@ -55,27 +27,22 @@ namespace dynamixel {
             
             for (unsigned i = 0; i < 6; i++) {
                 
-                if (true) //(dynamixel_iterator != _dynamixel_map.end()) // check that the actuator's name is in the map
-                {
-                    std::string j_name = "joint_" + std::to_string(i+1);
-                    // tell ros_control the in-memory address where to read the
-                    // information on joint angle, velocity and effort
-                    hardware_interface::JointStateHandle state_handle(
-                        j_name,
-                        &_joint_angles[i],
-                        &_joint_velocities[i],
-                        &_joint_efforts[i]);
-                    _jnt_state_interface.registerHandle(state_handle);
-                    // tell ros_control the in-memory address to change to set new
-                    // position goal for the actuator
-                    hardware_interface::JointHandle pos_handle(
-                        _jnt_state_interface.getHandle(j_name),
-                        &_joint_commands[i]);
-                    _jnt_effort_interface.registerHandle(pos_handle);
-                }
-                else {
-                    ROS_WARN_STREAM("Servo " << i << " was not initialised (not found in the parameters)");
-                }
+                std::string j_name = "joint_" + std::to_string(i+1);
+                // tell ros_control the in-memory address where to read the
+                // information on joint angle, velocity and effort
+                hardware_interface::JointStateHandle state_handle(
+                    j_name,
+                    &_joint_angles[i],
+                    &_joint_velocities[i],
+                    &_joint_efforts[i]);
+                _jnt_state_interface.registerHandle(state_handle);
+                // tell ros_control the in-memory address to change to set new
+                // position goal for the actuator
+                hardware_interface::JointHandle pos_handle(
+                    _jnt_state_interface.getHandle(j_name),
+                    &_joint_commands[i]);
+                _jnt_effort_interface.registerHandle(pos_handle);
+                
             }
             
             // register the hardware interfaces
@@ -89,6 +56,11 @@ namespace dynamixel {
         }
 
         // At startup robot should keep the pose it has
+        ros::spinOnce();
+
+        for (unsigned i = 0; i < 6; i++) {
+            _joint_commands[i] = _joint_angles[i];
+        }
     }
 
     /** Copy joint's information to memory
