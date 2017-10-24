@@ -71,7 +71,7 @@ namespace dynamixel {
                     hardware_interface::JointHandle pos_handle(
                         _jnt_state_interface.getHandle(j_name),
                         &_joint_commands[i]);
-                    _jnt_pos_interface.registerHandle(pos_handle);
+                    _jnt_effort_interface.registerHandle(pos_handle);
                 }
                 else {
                     ROS_WARN_STREAM("Servo " << i << " was not initialised (not found in the parameters)");
@@ -80,7 +80,7 @@ namespace dynamixel {
             
             // register the hardware interfaces
             registerInterface(&_jnt_state_interface);
-            registerInterface(&_jnt_pos_interface);
+            registerInterface(&_jnt_effort_interface);
             
         }
         catch (const ros::Exception& e) {

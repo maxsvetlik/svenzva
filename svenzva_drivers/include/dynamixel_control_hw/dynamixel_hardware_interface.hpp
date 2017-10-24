@@ -11,7 +11,6 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-// Library for access to the dynamixels
 #include <dynamixel/dynamixel.hpp>
 
 namespace dynamixel {
@@ -62,7 +61,7 @@ namespace dynamixel {
 
         // ROS's hardware interface instances
         hardware_interface::JointStateInterface _jnt_state_interface;
-        hardware_interface::EffortJointInterface _jnt_pos_interface;
+        hardware_interface::EffortJointInterface _jnt_effort_interface;
 
         // Memory space shared with the controller
         // It reads here the latest robot's state and put here the next desired values

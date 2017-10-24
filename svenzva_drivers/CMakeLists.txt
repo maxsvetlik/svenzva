@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     svenzva_msgs
     kdl_parser
-    orocos_kdl
     cmake_modules
     roslib
     sensor_msgs
@@ -44,6 +43,7 @@ add_executable(svenzva_dynamics src/svenzva_drivers/svenzva_dynamics.cpp)
 target_link_libraries(svenzva_dynamics ${catkin_LIBRARIES})
 
 add_executable(svenzva_cartesian src/svenzva_drivers/revel_cartesian_vel.cpp)
+add_dependencies(svenzva_cartesian svenzva_msgs_generate_messages_cpp)
 target_link_libraries(svenzva_cartesian ${catkin_LIBRARIES})
 
 add_executable(dynamixel_control_hw src/ros_control/dynamixel_control_hw.cpp src/ros_control/dynamixel_loop.cpp src/ros_control/dynamixel_hardware_interface.cpp)

@@ -41,7 +41,6 @@
 #include <dynamixel_control_hw/dynamixel_loop.hpp>
 #include <std_msgs/Float64MultiArray.h>
 #include <sensor_msgs/JointState.h>
-#include <mx_msgs/JointState.h>
 
 namespace dynamixel {
     DynamixelLoop::DynamixelLoop(

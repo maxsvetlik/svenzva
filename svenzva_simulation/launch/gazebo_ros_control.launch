@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-   <rosparam name="use_sim_time" value="false"/>
    <include
        file="$(find gazebo_ros)/launch/empty_world.launch">
        <arg name="paused" value="true"/>
@@ -23,15 +22,21 @@
   <!-- Load joint controller configurations from YAML file to parameter server -->
   <rosparam file="$(find svenzva_drivers)/config/controller_params.yaml" command="load"/>
 
-  <!-- Load individual joint controllers 
+  <!-- Load individual joint controllers.
+       Note that in simulation, only one controller type can be active.
   <node name="controller" pkg="controller_manager" type="spawner" respawn="false" ns="revel"
-      output="screen" args="/dynamixel_controllers/joint_1 /dynamixel_controllers/joint_2 /dynamixel_controllers/joint_3 /dynamixel_controllers/joint_4 /dynamixel_controllers/joint_5 /dynamixel_controllers/joint_6 /dynamixel_controllers/joint_state_controller" />
+      output="screen" args="/svenzva_controllers/joint_1 /svenzva_controllers/joint_2 /svenzva_controllers/joint_3 /svenzva_controllers/joint_4 /svenzva_controllers/joint_5 /svenzva_controllers/joint_6 /svenzva_controllers/joint_state_controller " />
   -->
-
-  <!-- Load Joint Trajectory Controller -->
+   
+   <!-- Velocity control -->
+   <!--
+   <node name="controller" pkg="controller_manager" type="spawner" respawn="false" ns="revel"
+      output="screen" args="/svenzva_controllers/joint_1_vel /svenzva_controllers/joint_2_vel /svenzva_controllers/joint_3_vel /svenzva_controllers/joint_4_vel /svenzva_controllers/joint_5_vel /svenzva_controllers/joint_6_vel /svenzva_controllers/joint_state_controller " />
+   -->
+ 
+  <!-- Load Joint Trajectory Controller --> 
   <node name="controller" pkg="controller_manager" type="spawner" respawn="false" ns="revel"
-      output="screen" args="/dynamixel_controllers/joint_state_controller /revel" />
-
+      output="screen" args="/svenzva_controllers/joint_state_controller /revel " />
 
   <!-- convert joint states to TF transforms for rviz, etc -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
