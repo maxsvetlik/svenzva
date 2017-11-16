@@ -267,7 +267,7 @@ class SvenzvaDriver:
         self.dxl_io.set_operation_mode(2, 0)
         self.dxl_io.set_operation_mode(3, 0)
         self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_operation_mode(4, 0)
+        self.dxl_io.set_operation_mode(5, 0)
         self.dxl_io.set_operation_mode(6, 0)
         self.dxl_io.set_operation_mode(7, 0)
 
@@ -339,7 +339,7 @@ class SvenzvaDriver:
 
 
         teaching_mode = False
-        vel_mode =  True
+        vel_mode =  False
         if teaching_mode:
             self.teaching_mode()
             return
