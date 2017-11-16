@@ -339,7 +339,7 @@ class SvenzvaDriver:
 
 
         teaching_mode = False
-        vel_mode =  False
+        vel_mode =  True
         if teaching_mode:
             self.teaching_mode()
             return

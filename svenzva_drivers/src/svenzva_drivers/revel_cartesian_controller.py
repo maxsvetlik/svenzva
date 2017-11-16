@@ -75,8 +75,9 @@ class RevelCartesianController:
         self.last_twist = Twist()
         self.last_cmd = []
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
+        #self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.00001, 150);
         #self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.001, 1000000)
-        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.00001, 10000000);
+        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.001, 1000);
 
     def js_cb(self, msg):
         self.js = msg;
@@ -98,7 +99,6 @@ class RevelCartesianController:
         rot = PyKDL.Vector(msg.angular.x, msg.angular.y, msg.angular.z)
         qdot_out = PyKDL.JntArray(self.mNumJnts)
         vel = PyKDL.Twist(trans, rot)
-        print vel
         err = self.vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
         if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
             rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
@@ -112,22 +112,20 @@ class RevelCartesianController:
             rospy.loginfo("Unspecified error: %d", err)
             return
 
-        print qdot_out
-
         tup_list = []
         vals = []
 
         scale_factor = 1
 
         #check if any velocities violate max_limit
-
+        """
         for i in range(0, self.mNumJnts):
             if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
                 #compute scale factor that would make movement valid:
                 my_scale = abs(self.max_limit / qdot_out[i])
                 if my_scale < scale_factor:
                     scale_factor = my_scale
-
+        """
         #check if any velocities violate min_limit
         if scale_factor == 1:
             factors = []
@@ -151,8 +149,8 @@ class RevelCartesianController:
                 #rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
             #    tup_list.append( (i+1, 0))
             #else:
-                tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
-
+            tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
+        print qdot_out
         if len(tup_list) > 0:
             self.last_cmd = tup_list
             self.last_qdot = qdot_out

@@ -17,8 +17,8 @@
   <param name="axis_angular_x" value="1" type="int"/>
   <param name="axis_angular_y" value="0" type="int"/>
   <param name="axis_angular_z" value="2" type="int"/>
-  <param name="scale_linear" value=".02" type="double"/>
-  <param name="scale_angular" value=".02" type="double"/>
+  <param name="scale_linear" value="1.0" type="double"/>
+  <param name="scale_angular" value="1.0" type="double"/>
    
   <node pkg="svenzva_joy" type="svenzva_2axis_controller" name="svenzva_2axis_manager" output="screen"/>
 
