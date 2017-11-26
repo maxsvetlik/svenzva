@@ -4,7 +4,7 @@
     <arg name="namespace" value="revel"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->
-    <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, joint_7 ]</rosparam>
+    <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, finger_joint_1, finger_joint_2 ]</rosparam>
 
     <!-- Load the URDF/Xacro model of our robot -->
     <param name="robot_description" textfile="$(find svenzva_description)/robots/svenzva_arm.urdf" />

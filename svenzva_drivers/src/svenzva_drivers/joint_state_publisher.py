@@ -76,6 +76,12 @@ class JointStatePublisher():
             msg.velocity.append(joint.speed)
             msg.effort.append(joint.load)
 
+            if i == 6:
+                msg.name.append(self.joints[i+1])
+                msg.position.append(-1 * joint.position)
+                msg.velocity.append(-1 * joint.speed)
+                msg.effort.append(-1 * joint.load)
+
         msg.header.stamp = rospy.Time.now()
         self.joint_states_pub.publish(msg)
 

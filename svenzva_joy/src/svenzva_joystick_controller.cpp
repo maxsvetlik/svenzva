@@ -107,7 +107,7 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         svenzva_msgs::GripperGoal goal;
         if(joy->axes[2] < 0){
             goal.target_action = goal.CLOSE;
-            goal.target_current = 500;
+            goal.target_current = 300;
         }
         else if(joy->axes[5] < 0){
             goal.target_action = goal.OPEN;
