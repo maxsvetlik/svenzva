@@ -42,6 +42,8 @@
 
 #include <sensor_msgs/JointState.h>
 
+#include <stdlib.h>
+
 sensor_msgs::JointState joint_states;
 KDL::Tree my_tree;
 KDL::Chain chain;
@@ -51,9 +53,18 @@ KDL::JntArray jnt_q(mNumJnts);
 KDL::JntArray jnt_qd(mNumJnts);
 KDL::JntArray jnt_qdd(mNumJnts);
 KDL::JntArray jnt_taugc(mNumJnts);
+sensor_msgs::JointState model_states;
+bool first_run = true;
+KDL::ChainIdSolver_RNE *gcSolver;
+
+double alpha = 0.5;
 
 void js_cb(const sensor_msgs::JointState::ConstPtr& msg){
-    joint_states = *msg;
+    for(int i = 0; i < msg->effort.size(); i++){
+        joint_states.effort[i] = msg->effort[i] * alpha + (1.0 - alpha) * joint_states.effort[i];
+    }
+    joint_states.position = msg->position;
+    //joint_states = *msg;
 }
 
 /*
@@ -94,19 +105,39 @@ void feel_efforts(ros::Publisher tau_pub){
       jnt_q(i) = joint_states.position[i];
       jnt_qd(i) = 0.0;
       jnt_qdd(i) = 0.0;
-      jnt_wrenches.push_back(KDL::Wrench());
+      KDL::Wrench wr = KDL::Wrench();
+      if( !first_run) {
+        int gr = 1;
+        if(i == 0)
+            gr = 6;
+        else if( i == 3 || i == 4)
+            gr = 4;
+        else if(i == 1 || i == 2)
+            gr = 6;
+        double diff = model_states.effort[i] - joint_states.effort[i];
+        double frc = 0;
+
+        frc = -1 * (diff) * gr * .00336 * 1.083775;
+        
+        //ROS_INFO("q%d feels %f", i+1, frc);
+        KDL::Vector force(0, frc, 0);
+        wr.torque = force;
+        //jnt_wrenches.push_back(KDL::Wrench());
+        jnt_wrenches.push_back(wr);
+      }
+      else{
+        jnt_wrenches.push_back(KDL::Wrench());
+      }
     }
 
+    first_run = false;
     // Kinematics 
-    KDL::ChainFkSolverPos_recursive fkSolver = KDL::ChainFkSolverPos_recursive(chain);
-    KDL::Frame fkKDL;
-    fkSolver.JntToCart(jnt_q, fkKDL);
+    //KDL::ChainFkSolverPos_recursive fkSolver = KDL::ChainFkSolverPos_recursive(chain);
+    //KDL::Frame fkKDL;
+    //fkSolver.JntToCart(jnt_q, fkKDL);
 
     // Compute Dynamics 
-    KDL::Vector gravity(0.0, 0.0, -9.81);
-    KDL::ChainIdSolver_RNE gcSolver = KDL::ChainIdSolver_RNE(chain, gravity);
-    int ret = gcSolver.CartToJnt(jnt_q, jnt_qd, jnt_qdd, jnt_wrenches,jnt_taugc);
-    sensor_msgs::JointState model_states;
+    int ret = gcSolver->CartToJnt(jnt_q, jnt_qd, jnt_qdd, jnt_wrenches,jnt_taugc);
     model_states = joint_states;
     if (ret < 0){ 
         ROS_ERROR("KDL: inverse dynamics ERROR");
@@ -117,9 +148,15 @@ void feel_efforts(ros::Publisher tau_pub){
         for( int i = 0; i < mNumJnts; i++){
             //ROS_INFO("Joint %d got %f", i+1, jnt_taugc(i));
             //Compute the error in the model vs present output torques
+            
+            if( i == 1){
+                double spring_offset = 1.80347051143 * joint_states.position[i];
+                jnt_taugc(i) = jnt_taugc(i) - spring_offset; 
+            }
+            
             if (i == 1 || i == 2)
                 divisor = 6;
-            else if (i == 3 || i == 4)
+            else if (i == 0 || i == 3 || i == 4)
                 divisor = 4;
             model_states.effort[i] = jnt_taugc(i) / divisor;
             //double error = joint_states.effort[i] - (jnt_taugc(i) / divisor);
@@ -133,11 +170,14 @@ int main(int argc, char** argv){
     ros::init(argc, argv, "svenzva_dynamics");
 
     ros::NodeHandle n;
-    int rate = 10;
+    
     //n.param<int>("~publish_rate", rate, 20);
-    ros::Subscriber js_sub = n.subscribe("joint_states", 2, js_cb);
+    for(int i = 0; i < 7; i++)
+        joint_states.effort.push_back(0.0);
+
+    ros::Subscriber js_sub = n.subscribe("joint_states", 1, js_cb);
     ros::Publisher tau_pub = n.advertise<sensor_msgs::JointState>("/revel/model_efforts/", 1);
-    ros::Rate update_rate = ros::Rate(rate);
+    ros::Rate update_rate = ros::Rate(10);
     std::string path = ros::package::getPath("svenzva_description");
     std::string full_path = path + "/robots/svenzva_arm.urdf";
     ROS_INFO("Loading model from %s", full_path.c_str());
@@ -150,6 +190,9 @@ int main(int argc, char** argv){
     }
     my_tree.getChain("base_link", "link_6", chain);
     ROS_INFO("Kinematic chain expects %d joints", chain.getNrOfJoints());
+
+    KDL::Vector gravity(0.0, 0.0, -10.1);
+    gcSolver = new KDL::ChainIdSolver_RNE(chain, gravity);
 
 
     /*

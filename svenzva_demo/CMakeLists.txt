@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   moveit_ros_planning_interface
-  svenzva_demo
   svenzva_msgs
 )
 

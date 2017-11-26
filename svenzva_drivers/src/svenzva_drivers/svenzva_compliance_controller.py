@@ -40,7 +40,7 @@ import math
 import pandas as pd
 import numpy
 
-from std_msgs.msg import Float64, Int32
+from std_msgs.msg import Float64, Int32, Float64MultiArray
 from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
 from sensor_msgs.msg import JointState
 
@@ -60,14 +60,14 @@ class SvenzvaComplianceController():
         self.last_motor_state = MotorStateList()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
         rospy.Subscriber("revel/model_efforts", JointState, self.model_effort_cb)
-        rospy.Subscriber("revel/motor1/pos_cmd", Float64, self.pos_cmd_cb)
-        self.test_pub = rospy.Publisher("/revel/smoothed_current", Float64)
-        self.gr = [4,6,6,4,4,1,1]
-        self.smoothed_torque = [0, 0, 0, 0, 0, 0, 0]
+        
+        rospy.Subscriber("revel/motor_controller/pos_torque", Float64MultiArray, self.pos_cmd_cb)
+        self.gr = [4,6,6,1,4,1,1]
         self.model_torque = [0, 0, 0, 0, 0, 0, 0]
+        self.last_model_torque = [0, 0, 0, 0, 0, 0, 0]
         self.teaching_mode = teaching_mode
         self.max_current = False
-        self.pos_cmd = 0
+        self.pos_cmd = Float64MultiArray()
         self.pos_active = False
         self.pre_error = 0
 	self.torque_window = list()
@@ -94,6 +94,7 @@ class SvenzvaComplianceController():
     def model_effort_cb(self, msg):
         if not msg:
             return
+        self.last_model_torque = self.model_torque
         self.model_torque = msg.effort
 
     def pos_cmd_cb(self, msg):
@@ -126,12 +127,15 @@ class SvenzvaComplianceController():
     #and offset makes the joint easier to move due to model errors
     def feel_and_react_motor(self, motor_id, threshold=3, offset=0):
         filter_thresh = 50 # a delta larger than this value results in a discard
-        delta_pos = -50
-        delta_neg = 50
+        delta_pos = -10
+        delta_neg = 10
         model_torque = self.model_torque[motor_id-1] + offset
         #convert from Nm to raw current value
-        model_boost = self.get_raw_current(model_torque / self.gr[motor_id-1] * 0.01)
-        model_torque = self.get_raw_current(model_torque / self.gr[motor_id-1])
+
+        if abs(self.model_torque[motor_id-1] - self.last_model_torque[motor_id-1]) > 1:
+            return None
+        model_torque = self.get_raw_current(model_torque )
+        return (motor_id, model_torque)
 
         """
         if not self.teaching_mode:
@@ -142,6 +146,7 @@ class SvenzvaComplianceController():
                 model_torque = -50
         """
         """
+
         if abs(self.motor_state.motor_states[motor_id - 1].load - model_torque) > threshold:
             mag = int(math.copysign(1, model_torque - self.motor_state.motor_states[motor_id-1].load ))
             goal = model_torque
@@ -169,6 +174,7 @@ class SvenzvaComplianceController():
         return int(round(tau / 1.083775 / .00336))
 
     def feel_and_react(self):
+
         if not self.teaching_mode:
 
             moving_status = self.mx_io.get_multi_moving_status(range(1,7))
@@ -181,7 +187,6 @@ class SvenzvaComplianceController():
                 vals = []
                 #set all motor allowable currents to their maximum
                 for i in range(1,7):
-                    #self.mx_io.set_goal_pwm(i,450)
                     vals.append( (i,1900) )
                 self.mx_io.set_multi_current(tuple(vals))
                 self.max_current = True
@@ -194,18 +199,19 @@ class SvenzvaComplianceController():
                 return
 
         vals = []
-        vals.append(self.feel_and_react_motor(1, 1))
-        vals.append(self.feel_and_react_motor(2, 2))
-        vals.append(self.feel_and_react_motor(3, 2))
+        vals.append(self.feel_and_react_motor(1, 4))
+        vals.append(self.feel_and_react_motor(2, 4))
+        vals.append(self.feel_and_react_motor(3, 4))
         vals.append(self.feel_and_react_motor(4, 5))
         vals.append(self.feel_and_react_motor(5, 1))
         vals.append(self.feel_and_react_motor(6, 10))
         vals = [x for x in vals if x is not None]
 
-        if len(vals) > 0:
-            self.mx_io.set_multi_current(tuple(vals))
+        #if len(vals) > 0:
+        #    self.mx_io.set_multi_current(tuple(vals))
 
-        #rospy.sleep(0.05)
+        rospy.sleep(0.05)
+
 
 
         #update the motors that felt forces
@@ -214,13 +220,13 @@ class SvenzvaComplianceController():
         pos = []
         for i, state in enumerate(self.model_torque):
 
-            #if i == 6:
-            #    break
-
-            if i == 0:
-                vals.append( ( i+1, self.get_raw_current(state / self.gr[i]) ))
+            if i >= 2:
+                break
             else:
-                vals.append( ( i+1, self.get_raw_current(state / self.gr[i]) ))
+                if self.pos_active:
+                    vals.append( ( i+1, self.get_raw_current((self.pos_cmd[i]) / 1) ))
+                #else:
+                #    vals.append( ( i+1, self.get_raw_current((state) / self.gr[i]) ))
 
         if len(vals) > 0:
             self.mx_io.set_multi_current(tuple(vals))

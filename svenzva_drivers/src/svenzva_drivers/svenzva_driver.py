@@ -211,11 +211,6 @@ class SvenzvaDriver:
                     rospy.loginfo("Actual poling rate: %f", self.actual_rate)
             rate.sleep()
 
-    def _query_force_compliance(self):
-        self.compliance_controller.feel_and_react()
-        rospy.sleep(0.05)
-
-
     """
     This enables velocity control mode.
     Necessary for cartesian movement for remote controls
@@ -284,12 +279,37 @@ class SvenzvaDriver:
         rospy.sleep(0.1)
         Thread(target=self.compliance_controller.start).start()
 
+    def force_control_mode(self):
+
+        self.dxl_io.set_torque_enabled(1, 0)
+        self.dxl_io.set_torque_enabled(2, 0)
+        self.dxl_io.set_torque_enabled(3, 0)
+        self.dxl_io.set_torque_enabled(4, 0)
+        self.dxl_io.set_torque_enabled(5, 0)
+        self.dxl_io.set_torque_enabled(6, 0)
+
+
+        self.dxl_io.set_operation_mode(1, 0)
+        self.dxl_io.set_operation_mode(2, 0)
+        self.dxl_io.set_operation_mode(3, 0)
+        self.dxl_io.set_operation_mode(4, 0)
+        self.dxl_io.set_operation_mode(4, 0)
+        self.dxl_io.set_operation_mode(6, 0)
+
+        self.dxl_io.set_torque_enabled(1, 1)
+        self.dxl_io.set_torque_enabled(2, 1)
+        self.dxl_io.set_torque_enabled(3, 1)
+        self.dxl_io.set_torque_enabled(4, 1)
+        self.dxl_io.set_torque_enabled(5, 1)
+        self.dxl_io.set_torque_enabled(6, 1)
+        self.dxl_io.set_torque_enabled(7, 1)
+
 
     def start_modules(self):
         global traj_client
 
         #compliance_demonstration is an experimental dynamic compliance module
-        compliance_demonstration = False
+        compliance_demonstration = rospy.get_param('~dynamic_compliance', False)
 
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
@@ -311,6 +331,7 @@ class SvenzvaDriver:
         traj_client.wait_for_server()
 
         if compliance_demonstration:
+            rospy.loginfo("Starting with experimental dynamic compliance.")
             self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io,False)
             rospy.sleep(0.1)
             Thread(target=self.compliance_controller.start).start()
@@ -327,9 +348,10 @@ class SvenzvaDriver:
     def initialze_motor_states(self):
         rospack = rospkg.RosPack()
         path = rospack.get_path('svenzva_drivers')
+        config_file = rospy.get_param('~param_file', 'control_params.yaml')
 
         params = ''
-        with open( path+"/config/control_params.yaml", 'r') as stream:
+        with open( path+"/config/"+config_file, 'r') as stream:
             try:
                 params = yaml.load(stream)
             except yaml.YAMLError as exc:
@@ -350,7 +372,6 @@ class SvenzvaDriver:
                 self.dxl_io.set_torque_enabled(i, 0)
                 self.dxl_io.set_operation_mode(i, params[i]['mode'])
                 self.dxl_io.set_torque_enabled(i, 1)
-
                 self.dxl_io.set_position_p_gain(i, params[i]['p'])
                 self.dxl_io.set_position_i_gain(i, params[i]['i'])
                 self.dxl_io.set_position_d_gain(i, params[i]['d'])
@@ -390,6 +411,7 @@ class SvenzvaDriver:
         goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         point = JointTrajectoryPoint()
         point.positions = data.positions
+        #The duration and waiting for goal affect smoothness of joint actions
         point.time_from_start = rospy.Duration(5.0)
         goal.trajectory.points.append(point)
         traj_client.send_goal_and_wait(goal)

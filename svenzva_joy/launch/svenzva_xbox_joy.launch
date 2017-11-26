@@ -15,8 +15,8 @@
   <param name="axis_linear_y" value="1" type="int"/>
   <param name="axis_linear_z" value="4" type="int"/>
   <param name="axis_angular" value="0" type="int"/>
-  <param name="scale_linear" value="5.0" type="double"/>
-  <param name="scale_angular" value="5.0" type="double"/>
+  <param name="scale_linear" value="1.0" type="double"/>
+  <param name="scale_angular" value="10.0" type="double"/>
    
   <node pkg="svenzva_joy" type="svenzva_joystick_controller" name="svenzva_joy_manage" output="screen"/>
 
