@@ -60,24 +60,25 @@ class RevelCartesianController:
         self.robot = Robot.from_xml_string(f.read())
         f.close()
 
+
+        print self.robot.joints[0].limit.lower
+
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
-        self.chain = self.tree.getChain('base_link', 'ee_link')
-        #print chain.getNrOfJoints()
+        self.chain = self.tree.getChain('base_link', 'link_6')
         self.mNumJnts = 6
         self.jnt_q = PyKDL.JntArray(self.mNumJnts);
         self.jnt_qd = PyKDL.JntArray(self.mNumJnts);
         self.jnt_qdd = PyKDL.JntArray(self.mNumJnts);
-        self.gear_ratios = [4,6,6,4,4,2]
+        self.gear_ratios = [4,6,6,1,4,1]
         self.js = JointState()
         self.min_limit = 20.0
-        self.max_limit = 20.0
+        self.max_limit = 100.0
         self.last_twist = Twist()
         self.last_cmd = []
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
-        #self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.00001, 150);
+        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.0001, 1000);
         #self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.001, 1000000)
-        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.001, 1000);
 
     def js_cb(self, msg):
         self.js = msg;
@@ -118,15 +119,16 @@ class RevelCartesianController:
         scale_factor = 1
 
         #check if any velocities violate max_limit
-        """
+
         for i in range(0, self.mNumJnts):
             if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
                 #compute scale factor that would make movement valid:
                 my_scale = abs(self.max_limit / qdot_out[i])
                 if my_scale < scale_factor:
                     scale_factor = my_scale
-        """
+
         #check if any velocities violate min_limit
+        """
         if scale_factor == 1:
             factors = []
             for i in range(0, self.mNumJnts):
@@ -138,21 +140,21 @@ class RevelCartesianController:
                     #    scale_factor = my_scale
             #if len(factors) != 0:
             #    scale_factor = min(factors)
-
+        """
         if scale_factor != 1:
             rospy.loginfo("Scaling all velocity by %f", scale_factor)
 
-        for i in range(0, self.mNumJnts):
+        for i in range(0, self.mNumJnts-1):
             #check if movement violates urdf joint limits
-            #if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
-                #rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
-                #rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
-            #    tup_list.append( (i+1, 0))
-            #else:
-            tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
-        print qdot_out
+            if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
+                rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
+                rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
+                tup_list.append( (i+1, 0))
+            else:
+                tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
+
         if len(tup_list) > 0:
             self.last_cmd = tup_list
             self.last_qdot = qdot_out
-            #self.mx_io.set_multi_position(tuple(tup_list))
             self.mx_io.set_multi_speed(tuple(tup_list))
+

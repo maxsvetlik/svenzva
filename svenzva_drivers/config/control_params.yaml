@@ -38,7 +38,7 @@
     d: 6000
     acceleration: 10
     velocity: 100
-    gr: 4
+    gr: 1
     mode: 5
 5:
     p: 800
