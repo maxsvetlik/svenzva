@@ -66,7 +66,7 @@ class SvenzvaDriver:
     def __init__(self,
                  port_name='/dev/ttyUSB0',
                  port_namespace='revel',
-                 baud_rate='1000000',
+                 baud_rate='115200',
                  min_motor_id=1,
                  max_motor_id=7,
                  update_rate=10,
@@ -339,7 +339,7 @@ class SvenzvaDriver:
 
 
         teaching_mode = False
-        vel_mode =  False
+        vel_mode =  True
         if teaching_mode:
             self.teaching_mode()
             return
