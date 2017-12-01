@@ -349,9 +349,9 @@ class SvenzvaDriver:
                 rospy.logerr("Unable to open control_params.yaml. Exiting driver.")
                 exit()
 
-
-        teaching_mode = True
-        vel_mode =  False
+        mode = rospy.get_param('~mode', "user_defined")
+        teaching_mode = mode == "gravity"
+        vel_mode = mode == "velocity"
         if teaching_mode:
             self.teaching_mode()
             return
@@ -361,10 +361,6 @@ class SvenzvaDriver:
             #for nearly atomic context switch, use sync functions
             self.set_user_defined_mode(params)
             for i in range(self.min_motor_id, self.max_motor_id + 1):
-                #self.dxl_io.set_torque_enabled(i, 0)
-                #self.dxl_io.set_operation_mode(i, params[i]['mode'])
-                #self.dxl_io.set_torque_enabled(i, 1)
-
                 self.dxl_io.set_position_p_gain(i, params[i]['p'])
                 self.dxl_io.set_position_i_gain(i, params[i]['i'])
                 self.dxl_io.set_position_d_gain(i, params[i]['d'])

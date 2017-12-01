@@ -1,5 +1,5 @@
 <launch>
-
+    <arg name="mode" default="user_defined"/>
     <arg name="data_frequency" default="50"/>
     <arg name="namespace" value="revel"/>
 
@@ -10,8 +10,8 @@
     <param name="robot_description" textfile="$(find svenzva_description)/robots/svenzva_arm.urdf" />
 
     <node name="joint_state_publisher" type="joint_state_publisher.py" pkg="svenzva_drivers" output="screen">
-        <param name="rate" value="$(arg data_frequency)"/>
         <param name="arm_namespace" value="$(arg namespace)"/>
+        <param name="rate" value="$(arg data_frequency)"/>
     </node>
 
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" >
@@ -21,6 +21,7 @@
     <node name="revel_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
         <param name="arm_namespace" value="$(arg namespace)"/>
         <param name="update_rate" value="$(arg data_frequency)"/>
+        <param name="mode" value="$(arg mode)"/>
     </node>
 
     <!-- Start dynamics module -->
