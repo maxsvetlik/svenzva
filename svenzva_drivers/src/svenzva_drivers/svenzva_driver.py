@@ -221,30 +221,15 @@ class SvenzvaDriver:
     Necessary for cartesian movement for remote controls
     """
     def velocity_mode(self):
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
 
-        self.dxl_io.set_torque_enabled(1, 0)
-        self.dxl_io.set_torque_enabled(2, 0)
-        self.dxl_io.set_torque_enabled(3, 0)
-        self.dxl_io.set_torque_enabled(4, 0)
-        self.dxl_io.set_torque_enabled(5, 0)
-        self.dxl_io.set_torque_enabled(6, 0)
-        self.dxl_io.set_torque_enabled(7, 0)
 
-        self.dxl_io.set_operation_mode(1, 1)
-        self.dxl_io.set_operation_mode(2, 1)
-        self.dxl_io.set_operation_mode(3, 1)
-        self.dxl_io.set_operation_mode(4, 1)
-        self.dxl_io.set_operation_mode(5, 1)
-        self.dxl_io.set_operation_mode(6, 1)
-        self.dxl_io.set_operation_mode(7, 0)
+        tup_list_op = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,0)))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
 
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
-        self.dxl_io.set_torque_enabled(4, 1)
-        self.dxl_io.set_torque_enabled(5, 1)
-        self.dxl_io.set_torque_enabled(6, 1)
-        self.dxl_io.set_torque_enabled(7, 1)
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
 
 
 
@@ -255,6 +240,18 @@ class SvenzvaDriver:
     """
     def teaching_mode(self):
 
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
+
+
+        tup_list_op = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
+
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
+
+
+        """
         self.dxl_io.set_torque_enabled(1, 0)
         self.dxl_io.set_torque_enabled(2, 0)
         self.dxl_io.set_torque_enabled(3, 0)
@@ -278,11 +275,26 @@ class SvenzvaDriver:
         self.dxl_io.set_torque_enabled(5, 1)
         self.dxl_io.set_torque_enabled(6, 1)
         self.dxl_io.set_torque_enabled(7, 1)
-
+        """
 
         self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, True)
         rospy.sleep(0.1)
         Thread(target=self.compliance_controller.start).start()
+
+    """
+    Sets motor mode based on parameter file
+    """
+    def set_user_defined_mode(self, params):
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
+
+        tup_list_op = []
+        for i in range(self.min_motor_id, self.max_motor_id + 1):
+            tup_list_op.append((i, params[i]["mode"]))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
+
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
 
 
     def start_modules(self):
@@ -338,18 +350,20 @@ class SvenzvaDriver:
                 exit()
 
 
-        teaching_mode = False
-        vel_mode =  True
+        teaching_mode = True
+        vel_mode =  False
         if teaching_mode:
             self.teaching_mode()
             return
         elif vel_mode:
             self.velocity_mode()
         else:
+            #for nearly atomic context switch, use sync functions
+            self.set_user_defined_mode(params)
             for i in range(self.min_motor_id, self.max_motor_id + 1):
-                self.dxl_io.set_torque_enabled(i, 0)
-                self.dxl_io.set_operation_mode(i, params[i]['mode'])
-                self.dxl_io.set_torque_enabled(i, 1)
+                #self.dxl_io.set_torque_enabled(i, 0)
+                #self.dxl_io.set_operation_mode(i, params[i]['mode'])
+                #self.dxl_io.set_torque_enabled(i, 1)
 
                 self.dxl_io.set_position_p_gain(i, params[i]['p'])
                 self.dxl_io.set_position_i_gain(i, params[i]['i'])
