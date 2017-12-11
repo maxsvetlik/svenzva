@@ -45,10 +45,12 @@ from threading import Thread
 import rospy
 import actionlib
 
-from std_srvs.msg import Empty
+from std_srvs.srv import Empty
 from std_msgs.msg import Float64, Int32
 from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
 from svenzva_msgs.srv import SetTorqueEnable, HomeArm
+#from svenzva_drivers.svenzva_driver import SvenzvaDriver
+
 
 class RevelArmServices():
 
@@ -64,11 +66,11 @@ class RevelArmServices():
         self.motor_state = MotorState()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
 
-        self.reset_pos = 2.24
+        self.reset_pos = -3.4
         self.start()
 
     def motor_state_cb(self, data):
-        self.motor_state = data.motor_states[self.motor_id - 1]
+        self.motor_state = data.motor_states[self.gripper_id - 1]
 
 
     """
@@ -76,32 +78,21 @@ class RevelArmServices():
     position tracking.
     """
     def remove_fingers_cb(self, data):
+        force = 25
         cur_pos = self.motor_state.position
 
-        self.mx_io.set_torque_goal(self.gripper_id, -150)
+        #switch to position mode for simplicity
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 4)
+        self.mx_io.set_torque_enabled(7, 1)
 
-        #remove fingers so they are no longer in contact with motor
-        while( abs(cur_pos - self.motor_state.position) < 3.0):
-            rospy.sleep(0.05)
+        self.mx_io.set_position(7, int(round(self.reset_pos * 4096.0 / 6.2831853)))
+        rospy.sleep(5.0)
 
-        #stop movement
-        self.mx_io.set_torque_goal(self.motor_id, 0)
-
-
-        #prepare to move motor to correct reset position
-
-        if cur_pos > self.reset_pos:
-            force *= -1
-
-        self.mx_io.set_torque_goal(self.gripper_id, force)
-
-        while( abs(self.motor_state.position ) < 3.0):
-            rospy.sleep(0.05)
-
-        self.mx_io.set_torque_goal(self.gripper_id, 0)
-
-        #finally, turn off torque to allow user to engage fingers into gripper
-        self.mx_io.set_torque_enabled(self.gripper_id, 0)
+        #switch back to torque mode
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 0)
+        self.mx_io.set_torque_enabled(7, 1)
 
         return
 
@@ -110,7 +101,18 @@ class RevelArmServices():
     fingers have been pushed into the gripper by the user.
     """
     def insert_fingers_cb(self, data):
-        self.mx_io.set_torque_enabled(self.gripper_id, 1)
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 4)
+        self.mx_io.set_torque_enabled(7, 1)
+
+        self.mx_io.set_position(7, int(round(0 * 4096.0 / 6.2831853)))
+        rospy.sleep(5.0)
+
+
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 0)
+        self.mx_io.set_torque_enabled(7, 1)
+
         return
 
     def torque_enable_cb(self, data):

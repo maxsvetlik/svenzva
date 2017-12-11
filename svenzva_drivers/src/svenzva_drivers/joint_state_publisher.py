@@ -55,6 +55,9 @@ class JointStatePublisher():
 
         rospy.loginfo("Starting Joint State Publisher at " + str(rate) + "Hz")
 
+        #2*theta*r / pi = linear_distance due to 1:1 gear ratio for rack/pinion system
+        self.finger_divisor = .0246 / 3.14159 * 2
+
         while not rospy.is_shutdown():
             self.publish_joint_states()
             r.sleep()
@@ -71,18 +74,26 @@ class JointStatePublisher():
         msg.effort = []
 
         for i, joint in enumerate(self.motor_states):
-            msg.name.append(self.joints[i])
-            msg.position.append(joint.position)
-            msg.velocity.append(joint.speed)
-            msg.effort.append(joint.load)
-
             if i == 6:
-                msg.name.append(self.joints[i+1])
-                msg.position.append(-1 * joint.position)
+                #finger 1
+                msg.name.append(self.joints[i])
+                msg.position.append(-1 * joint.position * self.finger_divisor)
                 msg.velocity.append(-1 * joint.speed)
                 msg.effort.append(-1 * joint.load)
 
-        msg.header.stamp = rospy.Time.now()
+
+                #finger 2
+                msg.name.append(self.joints[i+1])
+                msg.position.append(1 * joint.position * self.finger_divisor)
+                msg.velocity.append(1 * joint.speed)
+                msg.effort.append(1 * joint.load)
+            else:
+                msg.name.append(self.joints[i])
+                msg.position.append(joint.position)
+                msg.velocity.append(joint.speed)
+                msg.effort.append(joint.load)
+
+            msg.header.stamp = rospy.Time.now()
         self.joint_states_pub.publish(msg)
 
 if __name__ == '__main__':
