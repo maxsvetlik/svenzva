@@ -19,6 +19,8 @@ include_directories(
 
 add_executable(svenzva_joystick_controller src/svenzva_joystick_controller.cpp)
 target_link_libraries(svenzva_joystick_controller ${catkin_LIBRARIES})
+add_dependencies(svenzva_joystick_controller svenzva_msgs_generate_messages_cpp)
 
 add_executable(svenzva_2axis_controller src/svenzva_2axis_controller.cpp)
+add_dependencies(svenzva_2axis_controller svenzva_msgs_generate_messages_cpp)
 target_link_libraries(svenzva_2axis_controller ${catkin_LIBRARIES})

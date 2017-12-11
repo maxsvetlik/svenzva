@@ -28,7 +28,7 @@ import rospy
 
 from sensor_msgs.msg import JointState as JointStatePR2
 from svenzva_msgs.msg import MotorStateList
-
+from mx_msgs.msg import JointState as MXJointState
 class JointStateMessage():
     def __init__(self, name, position, velocity, effort):
         self.name = name
@@ -45,25 +45,22 @@ class JointStatePublisher():
         namespace = rospy.get_param('~arm_namespace', '')
         self.joints = rospy.get_param('joint_names', '')
 
-        self.motor_states = []
+        self.motor_states = MXJointState()
 
         # Start controller state subscribers
-        rospy.Subscriber(namespace + '/motor_states', MotorStateList, self.motor_state_cb)
+        rospy.Subscriber('tilt_controller/state', MXJointState, self.motor_state_cb)
 
         # Start publisher
         self.joint_states_pub = rospy.Publisher('/joint_states', JointStatePR2, queue_size=1)
 
         rospy.loginfo("Starting Joint State Publisher at " + str(rate) + "Hz")
 
-        #2*theta*r / pi = linear_distance due to 1:1 gear ratio for rack/pinion system
-        self.finger_divisor = .0246 / 3.14159 * 2
-
         while not rospy.is_shutdown():
             self.publish_joint_states()
             r.sleep()
 
     def motor_state_cb(self, msg):
-        self.motor_states = msg.motor_states
+        self.motor_states = msg
 
     def publish_joint_states(self):
         # Construct message & publish joint states
@@ -73,28 +70,12 @@ class JointStatePublisher():
         msg.velocity = []
         msg.effort = []
 
-        for i, joint in enumerate(self.motor_states):
-            if i == 6:
-                #finger 1
-                msg.name.append(self.joints[i])
-                msg.position.append(-1 * joint.position * self.finger_divisor)
-                msg.velocity.append(-1 * joint.speed)
-                msg.effort.append(-1 * joint.load)
+        msg.name.append('joint_1')
+        msg.position.append(self.motor_states.current_pos)
+        msg.velocity.append(self.motor_states.velocity)
+        msg.effort.append(self.motor_states.load)
 
-
-                #finger 2
-                msg.name.append(self.joints[i+1])
-                msg.position.append(1 * joint.position * self.finger_divisor)
-                msg.velocity.append(1 * joint.speed)
-                msg.effort.append(1 * joint.load)
-            else:
-                msg.name.append(self.joints[i])
-                msg.position.append(joint.position)
-                msg.velocity.append(joint.speed)
-                msg.effort.append(joint.load)
-
-            msg.header.stamp = rospy.Time.now()
-
+        msg.header.stamp = rospy.Time.now()
         self.joint_states_pub.publish(msg)
 
 if __name__ == '__main__':

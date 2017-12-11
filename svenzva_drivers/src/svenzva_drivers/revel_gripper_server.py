@@ -62,6 +62,7 @@ class RevelGripperActionServer():
         self.closing_force = 150 #mA
         self.opening_force = -150 #mA
         self.moving_distance = 2.0 #rad
+
         self.motor_state = MotorState()
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
 

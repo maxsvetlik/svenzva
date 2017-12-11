@@ -60,6 +60,9 @@ class RevelCartesianController:
         self.robot = Robot.from_xml_string(f.read())
         f.close()
 
+
+        print self.robot.joints[0].limit.lower
+
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
         self.chain = self.tree.getChain('base_link', 'link_6')
@@ -125,6 +128,7 @@ class RevelCartesianController:
 
             #check if any velocities violate max_limit
 
+
             for i in range(0, self.mNumJnts):
                 if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
                     #compute scale factor that would make movement valid:
@@ -164,6 +168,5 @@ class RevelCartesianController:
                 self.mx_io.set_multi_speed(tuple(tup_list))
 
             rospy.Rate(10).sleep()
-
 
 

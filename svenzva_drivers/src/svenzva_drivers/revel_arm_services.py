@@ -44,10 +44,13 @@ from threading import Thread
 
 import rospy
 import actionlib
+import rospkg
+import yaml
 
 from std_srvs.srv import Empty
 from std_msgs.msg import Float64, Int32
 from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
+
 from svenzva_msgs.srv import SetTorqueEnable, HomeArm
 #from svenzva_drivers.svenzva_driver import SvenzvaDriver
 
@@ -127,6 +130,15 @@ class RevelArmServices():
             self.mx_io.set_torque_enabled(i+1, val)
             rospy.sleep(0.01)
 
+    def torque_goal_cb(self, data):
+        if len(data.data) != self.num_motors:
+            rospy.logerr("SetTorqueEnable: input motor_list is not the right length. Aborting.")
+            return
+        cmds = []
+        for i, val in enumerate(data.data):
+            cmds.append( (i+1, val))
+        self.mx_io.set_multi_current(tuple(cmds))
+        rospy.sleep(0.01)
 
     def start(self):
         rospy.loginfo("Starting RevelArmServices...")

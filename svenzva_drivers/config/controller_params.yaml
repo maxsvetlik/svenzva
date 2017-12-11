@@ -1,0 +1,84 @@
+svenzva_controllers:
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  joint_1:
+    type: effort_controllers/JointPositionController
+    joint: joint_1
+    pid: {p: 30.0, i: 1.5, d: 5.0}
+
+  joint_2:
+    type: effort_controllers/JointPositionController
+    joint: joint_2
+    pid: {p: 100.0, i: 3.0, d: 3.0}
+
+  joint_3:
+    type: effort_controllers/JointPositionController
+    joint: joint_3
+    pid: {p: 50.0, i: 3.0, d: 3.5}
+
+  joint_4:
+    type: effort_controllers/JointPositionController
+    joint: joint_4
+    pid: {p: 20.0, i: 0.5, d: 0.8}
+
+  joint_5:
+    type: effort_controllers/JointPositionController
+    joint: joint_5
+    pid: {p: 10.0, i: 1.0, d: 0.3}
+
+  joint_6:
+    type: effort_controllers/JointPositionController
+    joint: joint_6
+    pid: {p: 1.0, i: 0.03, d: 0.04}
+  
+  joint_1_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_1
+    pid: {p: 30.0, i: 1.5}
+  
+  joint_2_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_2
+    pid: {p: 100.0, i: 3.0}
+  
+  joint_3_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_3
+    pid: {p: 50.0, i: 3.0}
+  
+  joint_4_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_4
+    pid: {p: 20.0, i: 0.5}
+  
+  joint_5_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_5
+    pid: {p: 10.0, i: 1.0}
+  
+  joint_6_vel: 
+    type: effort_controllers/JointVelocityController
+    joint: joint_6
+    pid: {p: 1.0, i: 0.03}
+  
+revel:
+  type: effort_controllers/JointTrajectoryController
+  joints:
+    - joint_1
+    - joint_2
+    - joint_3
+    - joint_4
+    - joint_5
+    - joint_6
+
+  gains: # Required because we're controlling an effort interface
+    joint_1: {p: 30,  d: 5.0, i: 1.5, i_clamp: 1}
+    joint_2: {p: 100,  d: 3, i: 3, i_clamp: 1}
+    joint_3: {p: 50,  d: 3.5, i: 3, i_clamp: 1}
+    joint_4: {p: 20,  d: 0.8, i: 0.5, i_clamp: 1}
+    joint_5: {p: 10,  d: 0.3, i: 1, i_clamp: 1}
+    joint_6: {p: 1,  d: 0.04, i: 0.03, i_clamp: 1}
+
+  state_publish_rate:  25            # Override default
