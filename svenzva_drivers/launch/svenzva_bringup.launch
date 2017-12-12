@@ -23,9 +23,6 @@
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" >
     </node>
 
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" >
-    </node>
-
     <!-- Start the arm driver -->
     <node name="revel_driver" type="svenzva_driver.py" pkg="svenzva_drivers" output="screen">
         <param name="arm_namespace" value="$(arg namespace)"/>
