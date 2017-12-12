@@ -60,9 +60,6 @@ class RevelCartesianController:
         self.robot = Robot.from_xml_string(f.read())
         f.close()
 
-
-        print self.robot.joints[0].limit.lower
-
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
         self.chain = self.tree.getChain('base_link', 'link_6')
@@ -155,9 +152,9 @@ class RevelCartesianController:
 
             for i in range(0, self.mNumJnts-1):
                 #check if movement violates urdf joint limits
-                if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
+                if self.robot.joints[i+1].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i+1].limit.upper:
                     rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
-                    rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
+                    rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i+1].limit.lower, self.robot.joints[i+1].limit.upper)
                     tup_list.append( (i+1, 0))
                 else:
                     tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
