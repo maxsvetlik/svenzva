@@ -164,9 +164,8 @@ class SvenzvaDriver:
                         #convert to radians, and resolve multiplicative of gear ratio
                         state['goal'] = self.raw_to_rad(state['goal']  / gr[index])
                         state['position'] = self.raw_to_rad(state['position'] / gr[index])
-                        #convert raw current to torque model (in newton meters)
                         #linear model: -9.539325804e-18 + 1.0837745x
-                        state['load'] = (state['load'] ) #* .00336 ) * 1.083775 - 9.54e-18#1.14871 - .1244557
+                        state['load'] = (state['load'] )
                         state['speed'] = self.spd_raw_to_rad(state['speed'] / gr[index])
                         motor_states.append(MotorState(**state))
                         if dynamixel_io.exception: raise dynamixel_io.exception
@@ -244,33 +243,6 @@ class SvenzvaDriver:
 
         tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
         self.dxl_io.sync_set_torque_enabled(tup_list_en)
-
-
-        """
-        self.dxl_io.set_torque_enabled(1, 0)
-        self.dxl_io.set_torque_enabled(2, 0)
-        self.dxl_io.set_torque_enabled(3, 0)
-        self.dxl_io.set_torque_enabled(4, 0)
-        self.dxl_io.set_torque_enabled(5, 0)
-        self.dxl_io.set_torque_enabled(6, 0)
-        self.dxl_io.set_torque_enabled(7, 0)
-
-        self.dxl_io.set_operation_mode(1, 0)
-        self.dxl_io.set_operation_mode(2, 0)
-        self.dxl_io.set_operation_mode(3, 0)
-        self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_operation_mode(5, 0)
-        self.dxl_io.set_operation_mode(6, 0)
-        self.dxl_io.set_operation_mode(7, 0)
-
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
-        self.dxl_io.set_torque_enabled(4, 1)
-        self.dxl_io.set_torque_enabled(5, 1)
-        self.dxl_io.set_torque_enabled(6, 1)
-        self.dxl_io.set_torque_enabled(7, 1)
-        """
 
         self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, True)
         rospy.sleep(0.1)

@@ -74,24 +74,26 @@ class JointStatePublisher():
         msg.effort = []
 
         for i, joint in enumerate(self.motor_states):
+            #linear fit into torque in Nm
+            effort_nm = joint.load * 0.00336 * 1.083775
             if i == 6:
                 #finger 1
                 msg.name.append(self.joints[i])
                 msg.position.append(-1 * joint.position * self.finger_divisor)
                 msg.velocity.append(-1 * joint.speed)
-                msg.effort.append(-1 * joint.load)
+                msg.effort.append(-1 * effort_nm)
 
 
                 #finger 2
                 msg.name.append(self.joints[i+1])
                 msg.position.append(1 * joint.position * self.finger_divisor)
                 msg.velocity.append(1 * joint.speed)
-                msg.effort.append(1 * joint.load)
+                msg.effort.append(1 * effort_nm)
             else:
                 msg.name.append(self.joints[i])
                 msg.position.append(joint.position)
                 msg.velocity.append(joint.speed)
-                msg.effort.append(joint.load)
+                msg.effort.append(effort_nm)
 
             msg.header.stamp = rospy.Time.now()
 

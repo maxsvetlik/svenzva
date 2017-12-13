@@ -68,35 +68,6 @@ void js_cb(const sensor_msgs::JointState::ConstPtr& msg){
 }
 
 /*
- * Inverse velocity kinematics
- */
-
-void feel_velocity(){
-    
-    for (unsigned int i = 0; i < mNumJnts; i++) {
-      jnt_q(i) = 0.0;
-      jnt_qd(i) = 0.0;
-      jnt_qdd(i) = 0.0;
-    }
-    jnt_q(1) = 0.5;
-    jnt_q(2) = 0.72;
-    KDL::ChainIkSolverVel_pinv vel_solver = KDL::ChainIkSolverVel_pinv(chain,0.00001,150);
-
-    //Find an output joint velocity qdot_out, given a starting joint pose q_init and a desired cartesian velocity v_in 
-    KDL::Vector trans(0.01, 0.0, 0.0);
-    KDL::Vector rot(0, 0, 0);
-    KDL::Twist vel(trans, rot);
-    KDL::JntArray qdot_out(mNumJnts);
-    vel_solver.CartToJnt(  jnt_q, vel, qdot_out);  
-
-    for( int i=0; i < mNumJnts; i++){
-        ROS_INFO("Joint %d: %f", i+1, qdot_out(i));
-    }
-
-}
-
-
-/*
  * tau given q and the system dynamics
  */
 void feel_efforts(ros::Publisher tau_pub){
@@ -109,20 +80,18 @@ void feel_efforts(ros::Publisher tau_pub){
       if( !first_run) {
         int gr = 1;
         if(i == 0)
-            gr = 6;
-        else if( i == 3 || i == 4)
+            gr = 4;
+        else if( i == 4)
             gr = 4;
         else if(i == 1 || i == 2)
             gr = 6;
         double diff = model_states.effort[i] - joint_states.effort[i];
-        double frc = 0;
+        double frc = 0.0;
 
-        frc = -1 * (diff) * gr * .00336 * 1.083775;
+        frc = -1 * (diff) * gr;
         
-        //ROS_INFO("q%d feels %f", i+1, frc);
         KDL::Vector force(0, frc, 0);
         wr.torque = force;
-        //jnt_wrenches.push_back(KDL::Wrench());
         jnt_wrenches.push_back(wr);
       }
       else{
@@ -131,11 +100,6 @@ void feel_efforts(ros::Publisher tau_pub){
     }
 
     first_run = false;
-    // Kinematics 
-    //KDL::ChainFkSolverPos_recursive fkSolver = KDL::ChainFkSolverPos_recursive(chain);
-    //KDL::Frame fkKDL;
-    //fkSolver.JntToCart(jnt_q, fkKDL);
-
     // Compute Dynamics 
     int ret = gcSolver->CartToJnt(jnt_q, jnt_qd, jnt_qdd, jnt_wrenches,jnt_taugc);
     model_states = joint_states;
@@ -146,9 +110,7 @@ void feel_efforts(ros::Publisher tau_pub){
     else{
         int divisor = 1;
         for( int i = 0; i < mNumJnts; i++){
-            //ROS_INFO("Joint %d got %f", i+1, jnt_taugc(i));
             //Compute the error in the model vs present output torques
-            
             if( i == 1){
                 double spring_offset = 1.80347051143 * joint_states.position[i];
                 jnt_taugc(i) = jnt_taugc(i) - spring_offset; 
@@ -156,11 +118,9 @@ void feel_efforts(ros::Publisher tau_pub){
             
             if (i == 1 || i == 2)
                 divisor = 6;
-            else if (i == 0 || i == 3 || i == 4)
+            else if (i == 0 || i == 4)
                 divisor = 4;
             model_states.effort[i] = jnt_taugc(i) / divisor;
-            //double error = joint_states.effort[i] - (jnt_taugc(i) / divisor);
-            //ROS_INFO("Joint %d error: %f. %f theory vs %f actual ", i+1, error, (jnt_taugc(i) / divisor), joint_states.effort[i]); 
         }
     }
     tau_pub.publish(model_states);
@@ -171,7 +131,6 @@ int main(int argc, char** argv){
 
     ros::NodeHandle n;
     
-    //n.param<int>("~publish_rate", rate, 20);
     for(int i = 0; i < 7; i++)
         joint_states.effort.push_back(0.0);
 
@@ -191,7 +150,7 @@ int main(int argc, char** argv){
     my_tree.getChain("base_link", "link_6", chain);
     ROS_INFO("Kinematic chain expects %d joints", chain.getNrOfJoints());
 
-    KDL::Vector gravity(0.0, 0.0, -10.1);
+    KDL::Vector gravity(0.0, 0.0, -9.81);
     gcSolver = new KDL::ChainIdSolver_RNE(chain, gravity);
 
 
@@ -207,11 +166,6 @@ int main(int argc, char** argv){
         update_rate.sleep();
     }
     
-    /*
-     * Testing out jacobian and differential kinematics
-     */
-    //feel_velocity();
-
     return 0;
 
 }
