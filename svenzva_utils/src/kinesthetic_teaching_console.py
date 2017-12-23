@@ -50,55 +50,98 @@ from std_msgs.msg import Int32
 
 class KinestheticTeaching:
 
-    def __init__():
-        rospy.init_node('svenzva_pick_place_demo', anonymous=False)
-        global qmap, fkine, joint_states
+    def __init__(self):
 
         record = True
-        joint_states = JointState()
+        self.joint_states = JointState()
         gripper_client = actionlib.SimpleActionClient('/revel/gripper_action', GripperAction)
-        joint_states_sub = rospy.Subscriber('/joint_states', JointState, js_cb, queue_size=1)
-        fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
-        fkine.wait_for_server()
+        joint_states_sub = rospy.Subscriber('/joint_states', JointState, self.js_cb, queue_size=1)
+        self.fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
+        rospy.loginfo("Waiting for fkine trajectory server...")
+        #self.fkine.wait_for_server()
         rospy.loginfo("Found Trajectory action server")
 
-        gripper_client.wait_for_server()
+        rospy.loginfo("Waiting for gripper action server")
+        #gripper_client.wait_for_server()
         rospy.loginfo("Found Revel gripper action server")
 
         goal = GripperGoal()
 
-        filename = "book" #"pnp_demo"
+        self.filename = "book"
         fname=""
         rospack = rospkg.RosPack()
-        path = rospack.get_path('svenzva_demo')
+        self.path = rospack.get_path('svenzva_demo')
         # load the yaml file that specifies the home position
 
+        self.interaction_name = None
 
-
-    def js_cb(data):
-        global joint_states
-        joint_states = data
-
+    def js_cb(self, data):
+        self.joint_states = data
 
     """
     *
     * RECORDING
     *
+    * To be called each time the user wishes to save a pose
     """
+    def record_state_interaction(self):
+        if self.interaction_name is None:
+            raw_input("You must set the interaction before saving poses. Press Enter to continue.")
+            return
+
+        try:
+            f = open(path+"/config/" + self.interaction_name + ".yaml", "a")
+            ar = []
+            ar.append(self.joint_states.position[0])
+            ar.append(self.joint_states.position[1])
+            ar.append(self.joint_states.position[2])
+            ar.append(self.joint_states.position[3])
+            ar.append(self.joint_states.position[4])
+            ar.append(self.joint_states.position[5])
+            f.write(name + ": " + str(ar) + "\n")
+            f.close()
+            name = raw_input("Name this pose: ")
+        except:
+            raw_input("Unable to open file. Path: " + path+"/config/"+self.interaction_name+".yaml")
+        return
+
+    def record_gripper_interaction(self, open_gripper):
+        if self.interaction_name is None:
+            raw_input("You must set the interaction before saving poses. Press Enter to continue.")
+            return
+
+        try:
+            f = open(path+"/config/" + self.interaction_name + ".yaml", "a")
+            ar = []
+            #TODO- actually open or close gripper?
+            if open_gripper:
+                ar.append("open_gripper")
+            else:
+                ar.append("close_gripper")
+            f.write(name + ": " + str(ar) + "\n")
+            f.close()
+        except:
+            raw_input("Unable to open file. Path: " + path+"/config/"+self.interaction_name+".yaml")
+
+        return
 
 
 
-
+    def set_new_interaction_name(self):
+        #check if the input filename contains only valid characters
+        self.interaction_name = raw_input("Set interaction (file)name: ")
+        while not re.match(r'[\w-]*$', self.interaction_name):
+            self.interaction_name = raw_input("Set interaction (file)name: ")
+        return
 
     """
     *
     * PLAYBACK
     *
-
+    """
     #sends a j6 command as specified in the given yaml file.
     #files must exist in the config directory of the demo package
-    def js_playback(filename, state_name):
-        global qmap, fkine
+    def js_playback(self, filename, state_name):
 
         f = open(path+"/config/" + filename + ".yaml")
         qmap = yaml.safe_load(f)
@@ -108,30 +151,20 @@ class KinestheticTeaching:
         #2 - execute action on yaml file
         req = SvenzvaJointGoal()
         if len(qmap[state_name]) < 6:
-        rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
-        return
+            rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
+            return
         req.positions = qmap[state_name]
 
         rospy.loginfo("Sending state command...")
-        fkine.send_goal_and_wait(req)
+        self.fkine.send_goal_and_wait(req)
 
-    def setup():
-
-            while(not rospy.is_shutdown()):
-                raw_input("Press Enter to save the current joint state to file...")
-                name = raw_input("What to name this point: ")
-                f = open(path+"/config/" + filename + ".yaml", "a")
-                ar = []
-                ar.append(joint_states.position[0])
-                ar.append(joint_states.position[1])
-                ar.append(joint_states.position[2])
-                ar.append(joint_states.position[3])
-                ar.append(joint_states.position[4])
-                ar.append(joint_states.position[5])
-                f.write(name + ": " + str(ar) + "\n")
-                f.close()
+    """
+    Plays back an entire interaction- all poses specified in an interaction file
+    """
+    def playback_interaction(self):
 
         #go to first position
+        """
         js_playback(fname, "video_home")
         rospy.sleep(2.0)
 
@@ -153,47 +186,57 @@ class KinestheticTeaching:
 
         js_playback(fname, "einstein_i1")
         #rospy.sleep(1.0)
-    """
+        """
 
-def setup_console_menu():
-    # Create the menu
-    menu = CursesMenu("Svenzva Kinesthetic Interaction", "Teach or playback a guided interaction")
+    def start_console_menu(self):
+        # Create the menu
+        menu = CursesMenu("Main", "Teach or playback a guided interaction")
 
-    # MenuItem is the base class for all items, it doesn't do anything when selected
-    #menu_item = MenuItem("Menu Item")
+        gripper_menu = CursesMenu("Gripper Interaction", "Teaching a new guided interaction")
+        record_menu = CursesMenu("Record Interaction", "Teaching a new guided interaction")
 
-    # A FunctionItem runs a Python function when selected
-    #TODO
-    set_int_name_item = FunctionItem("Set interaction name", input, ["Enter the name"])
-    playback_item = FunctionItem("Playback an existing interaction", input, ["Enter the filename of the interaction you'd like to playback"])
-    save_pose_item = FunctionItem("Save robot pose", input, ["Enter a pose"])
+        record_submenu_item = SubmenuItem("Record a new interaction", record_menu, menu)
+        gripper_submenu_item = SubmenuItem("Set gripper action", gripper_menu, record_menu)
 
 
-    # A CommandItem runs a console command
-    # TODO:cat the yaml file
-    output_interaction_item = CommandItem("View raw interaction file",  "touch hello.txt")
+        # A FunctionItem runs a Python function when selected
+        save_pose_item = FunctionItem("Save robot pose", self.record_state_interaction)
+        save_gripper_open_item = FunctionItem("Open gripper", self.record_gripper_interaction, [True])
+        save_gripper_close_item = FunctionItem("Close gripper", self.record_gripper_interaction, [False])
 
-    record_menu = CursesMenu("Svenzva Kinesthetic Interaction", "Teaching a new guided interaction")
+        #TODO
+        playback_item = FunctionItem("Playback an existing interaction", input, ["Enter the filename of the interaction you'd like to playback"])
+        set_int_name_item = FunctionItem("Set interaction name", self.set_new_interaction_name)
 
-    # A SubmenuItem lets you add a menu (the selection_menu above, for example)
-    submenu_item = SubmenuItem("Record a new interaction", record_menu, menu)
 
-    record_menu.append_item(set_int_name_item)
-    record_menu.append_item(save_pose_item)
+        # A CommandItem runs a console command
+        # TODO:cat the yaml file
+        output_interaction_item = CommandItem("View raw interaction file",  "touch hello.txt")
 
-    menu.append_item(submenu_item)
-    menu.append_item(playback_item)
-    menu.append_item(output_interaction_item)
+        gripper_menu.append_item(save_gripper_open_item)
+        gripper_menu.append_item(save_gripper_close_item)
 
-    # Finally, we call show to show the menu and allow the user to interact
-    menu.show()
+
+
+        record_menu.append_item(set_int_name_item)
+        record_menu.append_item(save_pose_item)
+        record_menu.append_item(gripper_submenu_item)
+
+        menu.append_item(record_submenu_item)
+        menu.append_item(playback_item)
+        menu.append_item(output_interaction_item)
+
+        # Finally, we call show to show the menu and allow the user to interact
+        menu.show()
 
 if __name__ == '__main__':
-    setup_console_menu()
-    #try:
-    #
-    #except rospy.ROSInterruptException:
-    #    pass
+    #setup_console_menu()
+    rospy.init_node('svenzva_kinesthic_teaching_console', anonymous=False)
+    try:
+        kt = KinestheticTeaching()
+        kt.start_console_menu()
+    except rospy.ROSInterruptException:
+        pass
 
 
 
