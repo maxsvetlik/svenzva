@@ -139,54 +139,66 @@ class KinestheticTeaching:
     * PLAYBACK
     *
     """
-    #sends a j6 command as specified in the given yaml file.
-    #files must exist in the config directory of the demo package
+
+    """
+    Sends a j6 or gripper command given a yaml file.
+    Stand-alone method for playing a state.
+    """
     def js_playback(self, filename, state_name):
+        try:
+            f = open(path+"/config/" + filename + ".yaml")
+            qmap = yaml.safe_load(f)
+            f.close()
+        except:
+            rospy.logerr("Could not find specified state file. Does it exist?")
+            return
 
-        f = open(path+"/config/" + filename + ".yaml")
-        qmap = yaml.safe_load(f)
-        f.close()
-
-
-        #2 - execute action on yaml file
         req = SvenzvaJointGoal()
-        if len(qmap[state_name]) < 6:
+        if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
+            #TODO invoke gripper action
+        else:
+            if len(qmap[state_name]) < 6:
             rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
             return
-        req.positions = qmap[state_name]
+            req.positions = qmap[state_name]
 
-        rospy.loginfo("Sending state command...")
-        self.fkine.send_goal_and_wait(req)
+            rospy.loginfo("Sending state command...")
+            self.fkine.send_goal_and_wait(req)
+
+    """
+    Plays back a specific state name. Helper fuction
+    """
+    def js_playback(self, qmap, state_name):
+
+        req = SvenzvaJointGoal()
+        if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
+            #TODO invoke gripper action
+        else:
+            if len(qmap[state_name]) < 6:
+            rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
+            return
+            req.positions = qmap[state_name]
+
+            rospy.loginfo("Sending state command...")
+            self.fkine.send_goal_and_wait(req)
+
 
     """
     Plays back an entire interaction- all poses specified in an interaction file
     """
-    def playback_interaction(self):
+    def playback_interaction(self, filename):
+        try:
+            f = open(path+"/config/" + filename + ".yaml")
+            qmap = yaml.safe_load(f)
+            f.close()
+        except:
+            rospy.logerr("Could not find specified state file. Does it exist?")
+            return
 
-        #go to first position
-        """
-        js_playback(fname, "video_home")
-        rospy.sleep(2.0)
+        for state in qmap:
+            self.js_playback(qmap, state)
+            rospy.sleep(2.0)
 
-        #open gripper
-        goal.target_action = goal.OPEN
-        gripper_client.send_goal(goal)
-        rospy.sleep(0.5)
-
-        js_playback(fname, "einstein_a1")
-        rospy.sleep(0.5)
-
-        js_playback(fname, "einstein_p1")
-        rospy.sleep(0.5)
-
-        goal.target_action = goal.CLOSE
-        goal.target_current = 50
-        gripper_client.send_goal(goal)
-        rospy.sleep(1.0)
-
-        js_playback(fname, "einstein_i1")
-        #rospy.sleep(1.0)
-        """
 
     def start_console_menu(self):
         # Create the menu
