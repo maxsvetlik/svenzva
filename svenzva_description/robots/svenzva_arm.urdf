@@ -1,5 +1,12 @@
-<robot
-  name="svenzva_armsvenzva_arm name="base_link">
+<robot name="revel"> 
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/revel/</robotNamespace>
+    </plugin>
+  </gazebo>
+
+  <link name="world"/>
+  <link name="base_link">
     <inertial>
       <origin
         xyz="-0.00133562616624824 -0.00299591002016462 0.0153449295508581"
@@ -38,6 +45,12 @@
       </geometry>
     </collision>
   </link>
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
+
   <link
     name="link_1">
     <inertial>
@@ -386,4 +399,189 @@
       effort="0"
       velocity="0" />
   </joint>
+
+  <link
+    name="finger_link_1">
+    <inertial>
+      <origin
+        xyz="-0.00483282204262809 -0.00411403012500923 0.0206210772714723"
+        rpy="0 0 1.5708" />
+      <mass
+        value="0.0220307791071739" />
+      <inertia
+        ixx="9.08331950596468E-06"
+        ixy="-2.05394082888464E-06"
+        ixz="-2.23772944669454E-06"
+        iyy="1.04239718244321E-05"
+        iyz="-2.75990314800171E-06"
+        izz="9.60841591398502E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 1.5708" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger_link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger_link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="finger_joint_1"
+    type="prismatic">
+    <origin
+      xyz="0 0 -0.052509"
+      rpy="-3.1416 -1.8964E-18 3.1416" />
+    <parent
+      link="link_6" />
+    <child
+      link="finger_link_1" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="0"
+      upper="0.05"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="finger_joint_2">
+    <inertial>
+      <origin
+        xyz="0.00483282233149502 0.00411402197005728 0.020621076918268"
+        rpy="0 0 1.5708" />
+      <mass
+        value="0.0220307791071739" />
+      <inertia
+        ixx="9.08331950596466E-06"
+        ixy="-2.05394082888463E-06"
+        ixz="2.23772944669453E-06"
+        iyy="1.04239718244321E-05"
+        iyz="2.75990314800169E-06"
+        izz="9.60841591398501E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 1.5708" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger_joint_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://svenzva_description/meshes/finger_joint_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="finger_joint_2"
+    type="prismatic">
+    <origin
+      xyz="0 0 -0.052509"
+      rpy="-3.1416 -1.8964E-18 3.1416" />
+    <parent
+      link="link_6" />
+    <child
+      link="finger_joint_2" />
+    <axis
+      xyz="-1 0 0" />
+    <limit
+      lower="-0.05"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <transmission name="joint_1_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_1">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_1">
+      <mechanicalReduction>4</mechanicalReduction>
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </actuator>
+  </transmission>
+
+  <transmission name="joint_2_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_2">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  <actuator name="motor_2">
+    <mechanicalReduction>6</mechanicalReduction>
+    <hardwareInterface>EffortJointInterface</hardwareInterface>
+  </actuator>
+  </transmission>
+
+  <transmission name="joint_3_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_3">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  <actuator name="motor_3">
+    <mechanicalReduction>6</mechanicalReduction>
+    <hardwareInterface>EffortJointInterface</hardwareInterface>
+  </actuator>
+  </transmission>
+
+  <transmission name="joint_4_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_4">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  <actuator name="motor_4">
+    <mechanicalReduction>1</mechanicalReduction>
+    <hardwareInterface>EffortJointInterface</hardwareInterface>
+  </actuator>
+  </transmission>
+
+  <transmission name="joint_5_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_5">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  <actuator name="motor_5">
+    <mechanicalReduction>4</mechanicalReduction>
+    <hardwareInterface>EffortJointInterface</hardwareInterface>
+  </actuator>
+  </transmission>
+
+  <transmission name="joint_6_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_6">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+  <actuator name="motor_6">
+    <mechanicalReduction>1</mechanicalReduction>
+    <hardwareInterface>EffortJointInterface</hardwareInterface>
+  </actuator>
+  </transmission>
+
+
 </robot>
