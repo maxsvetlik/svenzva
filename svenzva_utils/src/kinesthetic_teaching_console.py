@@ -71,10 +71,8 @@ class KinestheticTeaching:
 
         self.gripper_goal = GripperGoal()
 
-        self.filename = "book"
-        fname=""
         rospack = rospkg.RosPack()
-        self.path = rospack.get_path('svenzva_demo')
+        self.path = rospack.get_path('svenzva_utils')
 
         self.interaction_name = None
         self.playback_file = None
@@ -83,15 +81,15 @@ class KinestheticTeaching:
         self.joint_states = data
 
     def open_gripper(self):
-         self.goal.target_action = self.goal.OPEN
-         self.gripper_client.send_goal(self.goal)
+         self.gripper_goal.target_action = self.gripper_goal.OPEN
+         self.gripper_client.send_goal(self.gripper_goal)
          rospy.sleep(0.5)
          return
 
     def close_gripper(self):
-        self.goal.target_action = self.goal.CLOSE
-        self.goal.target_current = 50
-        gripper_client.send_goal(self.goal)
+        self.gripper_goal.target_action = self.gripper_goal.CLOSE
+        self.gripper_goal.target_current = 50
+        self.gripper_client.send_goal(self.gripper_goal)
         rospy.sleep(0.5)
         return
 
@@ -107,7 +105,9 @@ class KinestheticTeaching:
             return
 
         try:
-            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a")
+            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a+")
+
+            name = raw_input("Name this pose: ")
             ar = []
             ar.append(self.joint_states.position[0])
             ar.append(self.joint_states.position[1])
@@ -117,7 +117,6 @@ class KinestheticTeaching:
             ar.append(self.joint_states.position[5])
             f.write(name + ": " + str(ar) + "\n")
             f.close()
-            name = raw_input("Name this pose: ")
         except:
             raw_input("Unable to open file. Path: " + self.path+"/config/"+self.interaction_name+".yaml")
         return
@@ -128,7 +127,9 @@ class KinestheticTeaching:
             return
 
         try:
-            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a")
+            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a+")
+
+            num_lines = sum(1 for line in f)
             ar = []
             if open_gripper:
                 ar.append("open_gripper")
@@ -136,7 +137,7 @@ class KinestheticTeaching:
             else:
                 ar.append("close_gripper")
                 self.close_gripper()
-            f.write(name + ": " + str(ar) + "\n")
+            f.write("gripper" + num_lines + ": " +str(ar) + "\n")
             f.close()
         except:
             raw_input("Unable to open file. Path: " + self.path+"/config/"+self.interaction_name+".yaml")
@@ -172,8 +173,10 @@ class KinestheticTeaching:
             return
 
         req = SvenzvaJointGoal()
-        if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
+        if qmap[state_name][0] == "open_gripper":
             self.open_gripper()
+        elif qmap[state_name][0] == "close_gripper":
+            self.close_gripper()
         else:
             if len(qmap[state_name]) < 6:
                 rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
@@ -189,7 +192,11 @@ class KinestheticTeaching:
     def js_playback(self, qmap, state_name):
 
         req = SvenzvaJointGoal()
-        if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
+
+        #action_name is at 0th index. additional indicies reserved for gripper action specifications- e.g. torque
+        if qmap[state_name][0] == "open_gripper":
+            self.open_gripper()
+        elif qmap[state_name][0] == "close_gripper":
             self.close_gripper()
         else:
             if len(qmap[state_name]) < 6:
@@ -198,7 +205,8 @@ class KinestheticTeaching:
             req.positions = qmap[state_name]
 
             rospy.loginfo("Sending state command...")
-            self.fkine.send_goal_and_wait(req)
+            print req
+            #self.fkine.send_goal_and_wait(req)
 
 
     """
