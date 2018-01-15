@@ -89,6 +89,7 @@ class SvenzvaDriver:
         self.current_state = MotorStateList()
         self.num_ping_retries = 5
 
+        self.traj_client = None
         self.motor_states_pub = rospy.Publisher('%s/motor_states' % self.port_namespace, MotorStateList,         queue_size=1)
         rospy.on_shutdown(self.disconnect)
 
@@ -266,7 +267,6 @@ class SvenzvaDriver:
 
 
     def start_modules(self):
-        global traj_client
 
         #compliance_demonstration is an experimental dynamic compliance module
         compliance_demonstration = rospy.get_param('~dynamic_compliance', False)
@@ -274,6 +274,10 @@ class SvenzvaDriver:
         jtac = JointTrajectoryActionController(self.port_namespace, self.dxl_io, self.current_state)
         rospy.sleep(1.0)
         jtac.start()
+
+        self.traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
+        self.traj_client.wait_for_server()
+
 
         self.fkine_action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
         self.fkine_action.start()
@@ -286,9 +290,6 @@ class SvenzvaDriver:
         cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
 
         rospy.loginfo("Started Cartesian controller")
-
-        traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
-        traj_client.wait_for_server()
 
         if compliance_demonstration:
             rospy.loginfo("Starting with experimental dynamic compliance.")
@@ -366,7 +367,6 @@ class SvenzvaDriver:
     Given an array of joint positions (in radians), send request to individual servos
     """
     def fkine_action(self, data):
-        global traj_client
         goal = FollowJointTrajectoryGoal()
         goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         point = JointTrajectoryPoint()
@@ -374,7 +374,7 @@ class SvenzvaDriver:
         #The duration and waiting for goal affect smoothness of joint actions
         point.time_from_start = rospy.Duration(5.0)
         goal.trajectory.points.append(point)
-        traj_client.send_goal_and_wait(goal)
+        self.traj_client.send_goal_and_wait(goal)
         res = SvenzvaJointResult()
         res.is_done = True
         self.fkine_action.set_succeeded(res)

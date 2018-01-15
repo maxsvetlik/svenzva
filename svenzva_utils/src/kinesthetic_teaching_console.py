@@ -205,8 +205,7 @@ class KinestheticTeaching:
             req.positions = qmap[state_name]
 
             rospy.loginfo("Sending state command...")
-            print req
-            #self.fkine.send_goal_and_wait(req)
+            self.fkine.send_goal_and_wait(req)
 
 
     """
@@ -221,7 +220,6 @@ class KinestheticTeaching:
             return
 
         filename = filename_list[file_index]
-        raw_input(str(filename))
         try:
             f = open(self.path+"/config/" + filename)
             qmap = yaml.safe_load(f)
