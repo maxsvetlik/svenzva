@@ -66,7 +66,7 @@ class SvenzvaDriver:
     def __init__(self,
                  port_name='/dev/ttyUSB0',
                  port_namespace='revel',
-                 baud_rate='1000000',
+                 baud_rate='115200',
                  min_motor_id=1,
                  max_motor_id=7,
                  update_rate=10,
@@ -164,9 +164,8 @@ class SvenzvaDriver:
                         #convert to radians, and resolve multiplicative of gear ratio
                         state['goal'] = self.raw_to_rad(state['goal']  / gr[index])
                         state['position'] = self.raw_to_rad(state['position'] / gr[index])
-                        #convert raw current to torque model (in newton meters)
                         #linear model: -9.539325804e-18 + 1.0837745x
-                        state['load'] = (state['load'] ) #* .00336 ) * 1.083775 - 9.54e-18#1.14871 - .1244557
+                        state['load'] = (state['load'] )
                         state['speed'] = self.spd_raw_to_rad(state['speed'] / gr[index])
                         motor_states.append(MotorState(**state))
                         if dynamixel_io.exception: raise dynamixel_io.exception
@@ -216,30 +215,15 @@ class SvenzvaDriver:
     Necessary for cartesian movement for remote controls
     """
     def velocity_mode(self):
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
 
-        self.dxl_io.set_torque_enabled(1, 0)
-        self.dxl_io.set_torque_enabled(2, 0)
-        self.dxl_io.set_torque_enabled(3, 0)
-        self.dxl_io.set_torque_enabled(4, 0)
-        self.dxl_io.set_torque_enabled(5, 0)
-        self.dxl_io.set_torque_enabled(6, 0)
-        self.dxl_io.set_torque_enabled(7, 0)
 
-        self.dxl_io.set_operation_mode(1, 1)
-        self.dxl_io.set_operation_mode(2, 1)
-        self.dxl_io.set_operation_mode(3, 1)
-        self.dxl_io.set_operation_mode(4, 1)
-        self.dxl_io.set_operation_mode(5, 1)
-        self.dxl_io.set_operation_mode(6, 1)
-        self.dxl_io.set_operation_mode(7, 0)
+        tup_list_op = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,0)))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
 
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
-        self.dxl_io.set_torque_enabled(4, 1)
-        self.dxl_io.set_torque_enabled(5, 1)
-        self.dxl_io.set_torque_enabled(6, 1)
-        self.dxl_io.set_torque_enabled(7, 1)
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
 
 
 
@@ -250,59 +234,35 @@ class SvenzvaDriver:
     """
     def teaching_mode(self):
 
-        self.dxl_io.set_torque_enabled(1, 0)
-        self.dxl_io.set_torque_enabled(2, 0)
-        self.dxl_io.set_torque_enabled(3, 0)
-        self.dxl_io.set_torque_enabled(4, 0)
-        self.dxl_io.set_torque_enabled(5, 0)
-        self.dxl_io.set_torque_enabled(6, 0)
-        self.dxl_io.set_torque_enabled(7, 0)
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
 
-        self.dxl_io.set_operation_mode(1, 0)
-        self.dxl_io.set_operation_mode(2, 0)
-        self.dxl_io.set_operation_mode(3, 0)
-        self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_operation_mode(5, 0)
-        self.dxl_io.set_operation_mode(6, 0)
-        self.dxl_io.set_operation_mode(7, 0)
 
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
-        self.dxl_io.set_torque_enabled(4, 1)
-        self.dxl_io.set_torque_enabled(5, 1)
-        self.dxl_io.set_torque_enabled(6, 1)
-        self.dxl_io.set_torque_enabled(7, 1)
+        tup_list_op = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
 
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
 
         self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io, True)
         rospy.sleep(0.1)
         Thread(target=self.compliance_controller.start).start()
 
-    def force_control_mode(self):
+    """
+    Sets motor mode based on parameter file
+    """
+    def set_user_defined_mode(self, params):
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_dis)
 
-        self.dxl_io.set_torque_enabled(1, 0)
-        self.dxl_io.set_torque_enabled(2, 0)
-        self.dxl_io.set_torque_enabled(3, 0)
-        self.dxl_io.set_torque_enabled(4, 0)
-        self.dxl_io.set_torque_enabled(5, 0)
-        self.dxl_io.set_torque_enabled(6, 0)
+        tup_list_op = []
+        for i in range(self.min_motor_id, self.max_motor_id + 1):
+            tup_list_op.append((i, params[i]["mode"]))
+        self.dxl_io.sync_set_operation_mode(tup_list_op)
 
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.dxl_io.sync_set_torque_enabled(tup_list_en)
 
-        self.dxl_io.set_operation_mode(1, 0)
-        self.dxl_io.set_operation_mode(2, 0)
-        self.dxl_io.set_operation_mode(3, 0)
-        self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_operation_mode(4, 0)
-        self.dxl_io.set_operation_mode(6, 0)
-
-        self.dxl_io.set_torque_enabled(1, 1)
-        self.dxl_io.set_torque_enabled(2, 1)
-        self.dxl_io.set_torque_enabled(3, 1)
-        self.dxl_io.set_torque_enabled(4, 1)
-        self.dxl_io.set_torque_enabled(5, 1)
-        self.dxl_io.set_torque_enabled(6, 1)
-        self.dxl_io.set_torque_enabled(7, 1)
 
 
     def start_modules(self):
@@ -359,19 +319,19 @@ class SvenzvaDriver:
                 rospy.logerr("Unable to open control_params.yaml. Exiting driver.")
                 exit()
 
+        mode = rospy.get_param('~mode', "user_defined")
+        teaching_mode = mode == "gravity"
+        vel_mode = mode == "velocity"
 
-        teaching_mode = False
-        vel_mode =  False
         if teaching_mode:
             self.teaching_mode()
             return
         elif vel_mode:
             self.velocity_mode()
         else:
+            #for nearly atomic context switch, use sync functions
+            self.set_user_defined_mode(params)
             for i in range(self.min_motor_id, self.max_motor_id + 1):
-                self.dxl_io.set_torque_enabled(i, 0)
-                self.dxl_io.set_operation_mode(i, params[i]['mode'])
-                self.dxl_io.set_torque_enabled(i, 1)
                 self.dxl_io.set_position_p_gain(i, params[i]['p'])
                 self.dxl_io.set_position_i_gain(i, params[i]['i'])
                 self.dxl_io.set_position_d_gain(i, params[i]['d'])

@@ -1,10 +1,9 @@
-<robot
-  name="revel">
-  <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/revel/</robotNamespace>
-    </plugin>
-  </gazebo>
+<robot name="revel">
+   <gazebo>
+     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+       <robotNamespace>/revel/</robotNamespace>
+     </plugin>
+   </gazebo>
 
     <link name="world"/>
 
@@ -589,5 +588,4 @@
     <hardwareInterface>EffortJointInterface</hardwareInterface>
   </actuator>
   </transmission>
-
 </robot>

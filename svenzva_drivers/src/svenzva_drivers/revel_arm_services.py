@@ -47,9 +47,13 @@ import actionlib
 import rospkg
 import yaml
 
-from std_msgs.msg import Float64, Int32, Float64MultiArray
-from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction, SvenzvaJointAction, SvenzvaJointGoal
+from std_srvs.srv import Empty
+from std_msgs.msg import Float64, Int32
+from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
+
 from svenzva_msgs.srv import SetTorqueEnable, HomeArm
+#from svenzva_drivers.svenzva_driver import SvenzvaDriver
+
 
 class RevelArmServices():
 
@@ -57,10 +61,62 @@ class RevelArmServices():
     def __init__(self, controller_namespace, mx_io, num_motors):
         self.mx_io = mx_io
         self.num_motors = num_motors
+        self.gripper_id = 7
         self.torque_srv = rospy.Service('/revel/SetTorqueEnable', SetTorqueEnable, self.torque_enable_cb)
         self.home_srv =rospy.Service('home_arm_service', HomeArm, self.home_arm)
-        self.torqe_sub = rospy.Subscriber('revel/TargetEffort', Float64MultiArray, self.torque_goal_cb)
+        self.remove_fingers = rospy.Service('/revel/gripper/remove_fingers', Empty, self.remove_fingers_cb)
+        self.insert_fingers = rospy.Service('/revel/gripper/insert_fingers', Empty, self.insert_fingers_cb)
+        self.motor_state = MotorState()
+        rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
+
+        self.reset_pos = -3.4
         self.start()
+
+    def motor_state_cb(self, data):
+        self.motor_state = data.motor_states[self.gripper_id - 1]
+
+
+    """
+    Service call back that pushes fingers out of gripper and resets motor position for correct finger
+    position tracking.
+    """
+    def remove_fingers_cb(self, data):
+        force = 25
+        cur_pos = self.motor_state.position
+
+        #switch to position mode for simplicity
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 4)
+        self.mx_io.set_torque_enabled(7, 1)
+
+        self.mx_io.set_position(7, int(round(self.reset_pos * 4096.0 / 6.2831853)))
+        rospy.sleep(5.0)
+
+        #switch back to torque mode
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 0)
+        self.mx_io.set_torque_enabled(7, 1)
+
+        return
+
+    """
+    Service used in conjunction with `remove_fingers` service. This service should be called after the
+    fingers have been pushed into the gripper by the user.
+    """
+    def insert_fingers_cb(self, data):
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 4)
+        self.mx_io.set_torque_enabled(7, 1)
+
+        self.mx_io.set_position(7, int(round(0 * 4096.0 / 6.2831853)))
+        rospy.sleep(5.0)
+
+
+        self.mx_io.set_torque_enabled(7, 0)
+        self.mx_io.set_operation_mode(7, 0)
+        self.mx_io.set_torque_enabled(7, 1)
+
+        return
 
     def torque_enable_cb(self, data):
         if len(data.motor_list) !=  self.num_motors:

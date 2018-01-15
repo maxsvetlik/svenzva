@@ -60,9 +60,6 @@ class RevelCartesianController:
         self.robot = Robot.from_xml_string(f.read())
         f.close()
 
-
-        print self.robot.joints[0].limit.lower
-
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
         self.chain = self.tree.getChain('base_link', 'link_6')
@@ -79,6 +76,9 @@ class RevelCartesianController:
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
         self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.0001, 1000);
         #self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.001, 1000000)
+        self.cart_vel = Twist()
+
+        self.loop()
 
     def js_cb(self, msg):
         self.js = msg;
@@ -90,71 +90,80 @@ class RevelCartesianController:
         return rad_per_min * 0.159155
 
     def cart_vel_cb(self, msg):
-        rospy.Rate(10).sleep()
-        for i in range(0, self.mNumJnts):
-            self.jnt_q[i] = self.js.position[i];
-            self.jnt_qd[i] = 0.0;
-            self.jnt_qdd[i] = 0.0;
+        self.cart_vel = msg
 
-        trans = PyKDL.Vector(msg.linear.x, msg.linear.y, msg.linear.z)
-        rot = PyKDL.Vector(msg.angular.x, msg.angular.y, msg.angular.z)
-        qdot_out = PyKDL.JntArray(self.mNumJnts)
-        vel = PyKDL.Twist(trans, rot)
-        err = self.vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
-        if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
-            rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
-            return
-        elif err == -8: #PyKDL.E_SVD_FAILED:
-            rospy.loginfo("Cartesian movement solver did not converge. Skipping.")
-            return
-        elif err == 100:
-            rospy.loginfo("Cartesian movement converged but psuedoinverse in singular.")
-        elif err != 0:
-            rospy.loginfo("Unspecified error: %d", err)
-            return
-
-        tup_list = []
-        vals = []
-
-        scale_factor = 1
-
-        #check if any velocities violate max_limit
-
-        for i in range(0, self.mNumJnts):
-            if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
-                #compute scale factor that would make movement valid:
-                my_scale = abs(self.max_limit / qdot_out[i])
-                if my_scale < scale_factor:
-                    scale_factor = my_scale
-
-        #check if any velocities violate min_limit
-        """
-        if scale_factor == 1:
-            factors = []
+    def loop(self):
+        rospy.sleep(1.0)
+        while not rospy.is_shutdown():
+            msg = self.cart_vel
             for i in range(0, self.mNumJnts):
-                if qdot_out[i] != 0.0 and abs(qdot_out[i] * self.gear_ratios[i]) < self.min_limit:
+                self.jnt_q[i] = self.js.position[i];
+                self.jnt_qd[i] = 0.0;
+                self.jnt_qdd[i] = 0.0;
+
+            trans = PyKDL.Vector(msg.linear.x, msg.linear.y, msg.linear.z)
+            rot = PyKDL.Vector(msg.angular.x, msg.angular.y, msg.angular.z)
+            qdot_out = PyKDL.JntArray(self.mNumJnts)
+            vel = PyKDL.Twist(trans, rot)
+            err = self.vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
+            if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
+                rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
+                return
+            elif err == -8: #PyKDL.E_SVD_FAILED:
+                rospy.loginfo("Cartesian movement solver did not converge. Skipping.")
+                return
+            elif err == 100:
+                rospy.loginfo("Cartesian movement converged but psuedoinverse in singular.")
+            elif err != 0:
+                rospy.loginfo("Unspecified error: %d", err)
+                return
+
+            tup_list = []
+            vals = []
+
+            scale_factor = 1
+
+            #check if any velocities violate max_limit
+
+
+            for i in range(0, self.mNumJnts):
+                if abs(qdot_out[i] * self.gear_ratios[i]) > self.max_limit:
                     #compute scale factor that would make movement valid:
-                    my_scale = abs(self.min_limit / qdot_out[i])
-                    factors.append(my_scale)
-                    #if my_scale < scale_factor:
-                    #    scale_factor = my_scale
-            #if len(factors) != 0:
-            #    scale_factor = min(factors)
-        """
-        if scale_factor != 1:
-            rospy.loginfo("Scaling all velocity by %f", scale_factor)
+                    my_scale = abs(self.max_limit / qdot_out[i])
+                    if my_scale < scale_factor:
+                        scale_factor = my_scale
 
-        for i in range(0, self.mNumJnts-1):
-            #check if movement violates urdf joint limits
-            if self.robot.joints[i].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i].limit.upper:
-                rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
-                rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i].limit.lower, self.robot.joints[i].limit.upper)
-                tup_list.append( (i+1, 0))
-            else:
-                tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
+            #check if any velocities violate min_limit
+            """
+            if scale_factor == 1:
+                factors = []
+                for i in range(0, self.mNumJnts):
+                    if qdot_out[i] != 0.0 and abs(qdot_out[i] * self.gear_ratios[i]) < self.min_limit:
+                        #compute scale factor that would make movement valid:
+                        my_scale = abs(self.min_limit / qdot_out[i])
+                        factors.append(my_scale)
+                        #if my_scale < scale_factor:
+                        #    scale_factor = my_scale
+                #if len(factors) != 0:
+                #    scale_factor = min(factors)
+            """
+            if scale_factor != 1:
+                rospy.loginfo("Scaling all velocity by %f", scale_factor)
 
-        if len(tup_list) > 0:
-            self.last_cmd = tup_list
-            self.last_qdot = qdot_out
-            self.mx_io.set_multi_speed(tuple(tup_list))
+            for i in range(0, self.mNumJnts-1):
+                #check if movement violates urdf joint limits
+                if self.robot.joints[i+1].limit.lower >= self.js.position[i] + (qdot_out[i]*scale_factor*0.01) or self.js.position[i] + (qdot_out[i]*scale_factor*0.01) >= self.robot.joints[i+1].limit.upper:
+                    rospy.logwarn("Cartesian movement would cause movement outside of joint limits. Skipping...")
+                    rospy.logwarn("Movement would violate joint limit: Joint %d moving to %f with limits [%f,%f]", i, (qdot_out[i]*scale_factor) + self.js.position[i], self.robot.joints[i+1].limit.lower, self.robot.joints[i+1].limit.upper)
+                    tup_list.append( (i+1, 0))
+                else:
+                    tup_list.append( (i+1, int(round(self.radpm_to_rpm(qdot_out[i] * self.gear_ratios[i] * scale_factor) / 0.229 ))))
+
+            if len(tup_list) > 0:
+                self.last_cmd = tup_list
+                self.last_qdot = qdot_out
+                self.mx_io.set_multi_speed(tuple(tup_list))
+
+            rospy.Rate(10).sleep()
+
 
