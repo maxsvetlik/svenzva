@@ -48,13 +48,17 @@ from control_msgs.msg import JointTrajectoryAction, JointTrajectoryGoal, FollowJ
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Int32
 
+from os import listdir
+from os.path import isfile, join
+
+
 class KinestheticTeaching:
 
     def __init__(self):
 
         record = True
         self.joint_states = JointState()
-        gripper_client = actionlib.SimpleActionClient('/revel/gripper_action', GripperAction)
+        self.gripper_client = actionlib.SimpleActionClient('/revel/gripper_action', GripperAction)
         joint_states_sub = rospy.Subscriber('/joint_states', JointState, self.js_cb, queue_size=1)
         self.fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
         rospy.loginfo("Waiting for fkine trajectory server...")
@@ -65,18 +69,31 @@ class KinestheticTeaching:
         #gripper_client.wait_for_server()
         rospy.loginfo("Found Revel gripper action server")
 
-        goal = GripperGoal()
+        self.gripper_goal = GripperGoal()
 
         self.filename = "book"
         fname=""
         rospack = rospkg.RosPack()
         self.path = rospack.get_path('svenzva_demo')
-        # load the yaml file that specifies the home position
 
         self.interaction_name = None
+        self.playback_file = None
 
     def js_cb(self, data):
         self.joint_states = data
+
+    def open_gripper(self):
+         self.goal.target_action = self.goal.OPEN
+         self.gripper_client.send_goal(self.goal)
+         rospy.sleep(0.5)
+         return
+
+    def close_gripper(self):
+        self.goal.target_action = self.goal.CLOSE
+        self.goal.target_current = 50
+        gripper_client.send_goal(self.goal)
+        rospy.sleep(0.5)
+        return
 
     """
     *
@@ -90,7 +107,7 @@ class KinestheticTeaching:
             return
 
         try:
-            f = open(path+"/config/" + self.interaction_name + ".yaml", "a")
+            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a")
             ar = []
             ar.append(self.joint_states.position[0])
             ar.append(self.joint_states.position[1])
@@ -102,7 +119,7 @@ class KinestheticTeaching:
             f.close()
             name = raw_input("Name this pose: ")
         except:
-            raw_input("Unable to open file. Path: " + path+"/config/"+self.interaction_name+".yaml")
+            raw_input("Unable to open file. Path: " + self.path+"/config/"+self.interaction_name+".yaml")
         return
 
     def record_gripper_interaction(self, open_gripper):
@@ -111,17 +128,18 @@ class KinestheticTeaching:
             return
 
         try:
-            f = open(path+"/config/" + self.interaction_name + ".yaml", "a")
+            f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a")
             ar = []
-            #TODO- actually open or close gripper?
             if open_gripper:
                 ar.append("open_gripper")
+                self.open_gripper()
             else:
                 ar.append("close_gripper")
+                self.close_gripper()
             f.write(name + ": " + str(ar) + "\n")
             f.close()
         except:
-            raw_input("Unable to open file. Path: " + path+"/config/"+self.interaction_name+".yaml")
+            raw_input("Unable to open file. Path: " + self.path+"/config/"+self.interaction_name+".yaml")
 
         return
 
@@ -146,7 +164,7 @@ class KinestheticTeaching:
     """
     def js_playback(self, filename, state_name):
         try:
-            f = open(path+"/config/" + filename + ".yaml")
+            f = open(self.path+"/config/" + filename + ".yaml")
             qmap = yaml.safe_load(f)
             f.close()
         except:
@@ -155,11 +173,11 @@ class KinestheticTeaching:
 
         req = SvenzvaJointGoal()
         if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
-            #TODO invoke gripper action
+            self.open_gripper()
         else:
             if len(qmap[state_name]) < 6:
-            rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
-            return
+                rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
+                return
             req.positions = qmap[state_name]
 
             rospy.loginfo("Sending state command...")
@@ -172,11 +190,11 @@ class KinestheticTeaching:
 
         req = SvenzvaJointGoal()
         if qmap[state_name] == "open_gripper" or qmap[state_name] == "close_gripper":
-            #TODO invoke gripper action
+            self.close_gripper()
         else:
             if len(qmap[state_name]) < 6:
-            rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
-            return
+                rospy.logerr("Could not find specified state. Configuration file ill-formed or missing. Aborting.")
+                return
             req.positions = qmap[state_name]
 
             rospy.loginfo("Sending state command...")
@@ -186,19 +204,33 @@ class KinestheticTeaching:
     """
     Plays back an entire interaction- all poses specified in an interaction file
     """
-    def playback_interaction(self, filename):
+    def playback_interaction(self):
+        filename_list = self.get_filelist()
+        file_index = SelectionMenu.get_selection(filename_list)
+
+        #check if user exited
+        if file_index == len(filename_list):
+            return
+
+        filename = filename_list[file_index]
+        raw_input(str(filename))
         try:
-            f = open(path+"/config/" + filename + ".yaml")
+            f = open(self.path+"/config/" + filename)
             qmap = yaml.safe_load(f)
             f.close()
         except:
             rospy.logerr("Could not find specified state file. Does it exist?")
+            raw_input("Could not find specified state file.")
             return
 
         for state in qmap:
             self.js_playback(qmap, state)
+            #TODO how long?
             rospy.sleep(2.0)
 
+    def get_filelist(self):
+        mypath = self.path +"/config/"
+        return [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
     def start_console_menu(self):
         # Create the menu
@@ -216,14 +248,13 @@ class KinestheticTeaching:
         save_gripper_open_item = FunctionItem("Open gripper", self.record_gripper_interaction, [True])
         save_gripper_close_item = FunctionItem("Close gripper", self.record_gripper_interaction, [False])
 
-        #TODO
-        playback_item = FunctionItem("Playback an existing interaction", input, ["Enter the filename of the interaction you'd like to playback"])
+        playback_item = FunctionItem("Playback an existing interaction", self.playback_interaction)
         set_int_name_item = FunctionItem("Set interaction name", self.set_new_interaction_name)
 
 
         # A CommandItem runs a console command
         # TODO:cat the yaml file
-        output_interaction_item = CommandItem("View raw interaction file",  "touch hello.txt")
+        output_interaction_item = CommandItem("View raw interaction file",  "cat hello.txt")
 
         gripper_menu.append_item(save_gripper_open_item)
         gripper_menu.append_item(save_gripper_close_item)
