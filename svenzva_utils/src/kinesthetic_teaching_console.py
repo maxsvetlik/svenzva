@@ -62,11 +62,11 @@ class KinestheticTeaching:
         joint_states_sub = rospy.Subscriber('/joint_states', JointState, self.js_cb, queue_size=1)
         self.fkine = actionlib.SimpleActionClient('/svenzva_joint_action', SvenzvaJointAction)
         rospy.loginfo("Waiting for fkine trajectory server...")
-        #self.fkine.wait_for_server()
+        self.fkine.wait_for_server()
         rospy.loginfo("Found Trajectory action server")
 
         rospy.loginfo("Waiting for gripper action server")
-        #gripper_client.wait_for_server()
+        self.gripper_client.wait_for_server()
         rospy.loginfo("Found Revel gripper action server")
 
         self.gripper_goal = GripperGoal()
@@ -76,6 +76,11 @@ class KinestheticTeaching:
 
         self.interaction_name = None
         self.playback_file = None
+
+        #Controls when a given pose will return, when played back on the arm
+        # where delta is the maximum deviation of all joints from the target pose array
+        self.delta = 0.1
+
 
     def js_cb(self, data):
         self.joint_states = data
@@ -231,8 +236,29 @@ class KinestheticTeaching:
 
         for state in qmap:
             self.js_playback(qmap, state)
-            #TODO how long?
-            rospy.sleep(2.0)
+            self.wait_for_stall(qmap[state])
+
+    # This method spins until a stall condition is detected.
+    # A stall condition happens when the joint states published from one time step to another have a
+    # total change less than DELTA, or
+    # when the error value (|target - actual|) of the joint value is below DELTA
+    def wait_for_stall(self, q_ar):
+        time = rospy.get_rostime()
+        max_time = rospy.Duration(10.0)
+
+        while rospy.get_rostime() < time + max_time:
+            stalled = True
+            for i in range(0,6):
+                if abs(self.joint_states.position[i] - q_ar[i]) > self.delta:
+                    stalled = False
+                    break
+            if stalled:
+                rospy.loginfo("Arm reached target position.")
+                return
+            rospy.sleep(10)
+        rospy.loginfo("Arm stalled: did not reach target position after 10 seconds.")
+        return
+
 
     def get_filelist(self):
         mypath = self.path +"/config/"
@@ -258,13 +284,8 @@ class KinestheticTeaching:
         set_int_name_item = FunctionItem("Set interaction name", self.set_new_interaction_name)
 
 
-        # A CommandItem runs a console command
-        # TODO:cat the yaml file
-        output_interaction_item = CommandItem("View raw interaction file",  "cat hello.txt")
-
         gripper_menu.append_item(save_gripper_open_item)
         gripper_menu.append_item(save_gripper_close_item)
-
 
 
         record_menu.append_item(set_int_name_item)
@@ -273,7 +294,6 @@ class KinestheticTeaching:
 
         menu.append_item(record_submenu_item)
         menu.append_item(playback_item)
-        menu.append_item(output_interaction_item)
 
         # Finally, we call show to show the menu and allow the user to interact
         menu.show()

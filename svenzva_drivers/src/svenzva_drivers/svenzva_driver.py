@@ -371,8 +371,8 @@ class SvenzvaDriver:
         goal.trajectory.joint_names = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
         point = JointTrajectoryPoint()
         point.positions = data.positions
-        #The duration and waiting for goal affect smoothness of joint actions
-        point.time_from_start = rospy.Duration(5.0)
+        #Since this is asynchronous, the time from 2 points is 0 and the action will return immediately
+        point.time_from_start = rospy.Duration(0.1)
         goal.trajectory.points.append(point)
         self.traj_client.send_goal_and_wait(goal)
         res = SvenzvaJointResult()
