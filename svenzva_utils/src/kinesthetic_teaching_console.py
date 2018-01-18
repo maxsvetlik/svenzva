@@ -52,6 +52,14 @@ from os import listdir
 from os.path import isfile, join
 
 
+"""
+This class creates a kinesthetic interface for Revel series robotic arms.
+Run as a file, this class is used and wrapped around an n-curses style terminal gui.
+
+The KinestheticTeaching class could be imported and used as a base for a drag-and-click GUI,
+or voice activated interactive system.
+"""
+
 class KinestheticTeaching:
 
     def __init__(self):
