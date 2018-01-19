@@ -1,6 +1,0 @@
-<package>
-  <description brief="svenzva_arm">svenzva_arm</description>
-  <depend package="gazebo" />
-  <author>me</author>
-  <license>BSD</license>
-</package>

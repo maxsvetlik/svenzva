@@ -1,1 +1,0 @@
-This file has the 11.04.16 version of the arm, with the gripper as one solid link rather than a member with 2 child links (for each finger)
