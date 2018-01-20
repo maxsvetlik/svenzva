@@ -10,12 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   moveit_ros_planning_interface
   svenzva_msgs
+  moveit_msgs
 )
 
 catkin_package( )
-
-
-add_executable(fkine src/fkine_demo.cpp)
-add_dependencies(fkine svenzva_demo_gencpp)
-target_link_libraries(fkine ${catkin_LIBRARIES})
 
