@@ -5,7 +5,7 @@
   <description>The svenza_drivers package</description>
   <maintainer email="max@svenzva.com">Max Svetlik</maintainer>
   <license>BSD</license>
-  <author email="max@svenzva.com">Max Svetlik</author> -->
+  <author email="max@svenzva.com">Max Svetlik</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -14,6 +14,8 @@
   <build_depend>actionlib_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>svenzva_msgs</build_depend>
   <build_depend>kdl_parser</build_depend>
@@ -22,12 +24,18 @@
   <build_depend>roslib</build_depend>
   <build_depend>hardware_interface</build_depend>
   <build_depend>controller_manager</build_depend>
-
+  <build_depend>python-yaml</build_depend>
+  <build_depend>python-pandas</build_depend>
+  <build_depend>urdfdom_py</build_depend>
+  <build_depend>python_orocos_kdl</build_depend>
+  <build_depend>mx_driver</build_depend>
 
   <run_depend>message_runtime</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>actionlib_msgs</run_depend>
   <run_depend>geometry_msgs</run_depend>
+  <run_depend>control_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>svenzva_msgs</run_depend>
@@ -37,7 +45,11 @@
   <run_depend>pykdl_utils</run_depend>
   <run_depend>hardware_interface</run_depend>
   <run_depend>controller_manager</run_depend>
-
+  <run_depend>python-yaml</run_depend>
+  <run_depend>python-pandas</run_depend>
+  <run_depend>urdfdom_py</run_depend>
+  <run_depend>python_orocos_kdl</run_depend>
+  <run_depend>mx_driver</run_depend>
 
   <export></export>
 </package>

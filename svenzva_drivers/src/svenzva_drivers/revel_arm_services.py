@@ -36,7 +36,8 @@ Svenzva's Revel general utility service interface
 
 Includes exposing the following services:
     + Arm torque enabled / disabled
-
+    + Finger position reset (finger-removal service)
+    + Finger hotswap (finger-insert service)
 Author: Maxwell Svetlik
 """
 from __future__ import division

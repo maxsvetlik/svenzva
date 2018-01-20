@@ -5,7 +5,11 @@ find_package(catkin REQUIRED COMPONENTS
   mx_msgs
   roscpp
   rospy
+  trajectory_msgs
+  std_msgs
+  sensor_msgs
   svenzva_msgs
+  svenzva_drivers
 )
 
 # find_package(Boost REQUIRED COMPONENTS system)
