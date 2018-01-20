@@ -11,8 +11,6 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include <dynamixel/dynamixel.hpp>
-
 namespace dynamixel {
 
     class DynamixelHardwareInterface : public hardware_interface::RobotHW {
