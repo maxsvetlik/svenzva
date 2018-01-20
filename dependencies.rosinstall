@@ -1,0 +1,8 @@
+- git:
+    local-name: hrl-kdl
+    uri: https://github.com/gt-ros-pkg/hrl-kdl.git
+    version: indigo-devel
+- git:
+    local-name: mx_dynamixel
+    uri: https://github.com/SvenzvaRobotics/mx_dynamixel.git
+    version: master
