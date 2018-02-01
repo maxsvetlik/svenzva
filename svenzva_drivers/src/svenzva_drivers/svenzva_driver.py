@@ -51,11 +51,9 @@ from svenzva_drivers.revel_arm_services import *
 from svenzva_drivers.revel_gripper_server import *
 from svenzva_drivers.svenzva_compliance_controller import *
 from std_msgs.msg import Bool
-from svenzva_drivers.msg import *
-from svenzva_drivers.srv import *
 from trajectory_msgs.msg import JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryAction, JointTrajectoryGoal, FollowJointTrajectoryAction, FollowJointTrajectoryGoal
-from svenzva_msgs.msg import MotorState, MotorStateList
+from svenzva_msgs.msg import MotorState, MotorStateList, SvenzvaJointAction
 
 
 
