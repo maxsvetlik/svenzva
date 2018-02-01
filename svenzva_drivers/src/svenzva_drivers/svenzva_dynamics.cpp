@@ -158,7 +158,7 @@ int main(int argc, char** argv){
      * Publish the expected torque according to the dynamic model
      */
     ros::spinOnce();
-    ros::Rate(1).sleep();
+    ros::Duration(5).sleep();
     update_rate.sleep();
     while(ros::ok()){
         ros::spinOnce();
