@@ -1,12 +1,9 @@
 <launch>
 
-  <!-- By default, we do not start a database (it can be large) -->
   <arg name="db" default="false" />
-  <!-- Allow user to specify database location -->
   <arg name="db_path" default="$(find svenzva_moveit)/default_warehouse_mongo_db" />
-
-  <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
+  <arg name="simulation" default="false"/>
 
   <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
   <include file="$(find svenzva_moveit)/launch/planning_context.launch">
@@ -17,10 +14,12 @@
   
 
   <!-- We do not have a robot connected, so publish fake joint states -->
-  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="/use_gui" value="false"/>
-    <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
-  </node> -->
+  <group if="$(arg simulation)">
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="/use_gui" value="false"/>
+        <rosparam param="/source_list">[/move_group/fake_controller_joint_states]</rosparam>
+    </node>
+  </group>
 
   <!-- Given the published joint states, publish tf for the robot links -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
@@ -28,7 +27,7 @@
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find svenzva_moveit)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
-    <arg name="fake_execution" value="false"/>
+    <arg name="fake_execution" value="$(arg simulation)"/>
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>
