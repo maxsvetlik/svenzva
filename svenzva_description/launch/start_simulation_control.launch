@@ -14,4 +14,9 @@
   <!-- Start position controllers -->
   <node name="controller" pkg="controller_manager" type="spawner"    respawn="false" ns="/revel" output="screen" args="/svenzva_controllers/joint_1 /svenzva_controllers/joint_2 /svenzva_controllers/joint_3 /svenzva_controllers/joint_4 /svenzva_controllers/joint_5 /svenzva_controllers/joint_6  /svenzva_controllers/joint_state_controller " />
 
+  <node name="revel_trajectory_controller" pkg="controller_manager" type="spawner" 
+      output="screen" ns="revel"
+      args="effort_joint_trajectory_controller
+      joint_state_controller"/>
+
 </launch>

@@ -174,14 +174,14 @@
         xyz="-0.00224918997054324 0.0725742731372729 0.0140957004144005"
         rpy="0 0 0" />
       <mass
-        value="0.227860881806706" />
+        value="0.285860881806706" />
       <inertia
-        ixx="0.00112944348732024"
-        ixy="4.15135248257336E-05"
-        ixz="-3.43714764817888E-06"
-        iyy="0.000132119085750405"
-        iyz="0.00011068088305105"
-        izz="0.00111351748824821" />
+        ixx="3.7638726"
+        ixy="-0.0981953"
+        ixz="-0.0055716"
+        iyy="0.2015035"
+        iyz="0.1841555"
+        izz="3.7151960" />
     </inertial>
     <visual>
       <origin
@@ -232,14 +232,14 @@
         xyz="4.94200978125581E-05 0.00446272782448867 0.0502025183837943"
         rpy="0 0 0" />
       <mass
-        value="0.174540765744632" />
+        value="0.236769" />
       <inertia
-        ixx="0.000200602142120969"
-        ixy="3.98188281865171E-08"
-        ixz="4.22246640456736E-07"
-        iyy="0.000143330609528363"
-        iyz="-7.54320528518119E-06"
-        izz="9.50323421662128E-05" />
+        ixx="0.70477"
+        ixy="-0.0006265"
+        ixz="0.0000363"
+        iyy="0.6356422"
+        iyz="0.0438258"
+        izz="0.1135842" />
     </inertial>
     <visual>
       <origin
@@ -278,10 +278,10 @@
     <axis
       xyz="0 0 1" />
     <limit
-      lower="-5"
-      upper="3.867"
-      effort="100"
-      velocity="10" />
+      lower="-3"
+      upper="3"
+      effort="10"
+      velocity="1" />
   </joint>
   <link
     name="link_5">
@@ -399,7 +399,6 @@
       effort="100"
       velocity="10" />
   </joint>
-
   <link
     name="finger_link_1">
     <inertial>
@@ -516,6 +515,7 @@
       effort="100"
       velocity="10" />
   </joint>
+
 
   <transmission name="joint_1_trans">
     <type>transmission_interface/SimpleTransmission</type>

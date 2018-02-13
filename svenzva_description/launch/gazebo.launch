@@ -1,7 +1,6 @@
 <launch>
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="paused" value="true"/>
-        <arg name="use_sim_time" value="true"/>
   </include>
   <node
     name="tf_footprint_base"
@@ -19,4 +18,6 @@
     pkg="rostopic"
     type="rostopic"
     args="pub /calibrated std_msgs/Bool true" />
+
+  <include file="$(find svenzva_description)/launch/start_simulation_control.launch"/>
 </launch>

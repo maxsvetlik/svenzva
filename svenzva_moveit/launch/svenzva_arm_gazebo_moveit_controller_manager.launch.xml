@@ -1,0 +1,8 @@
+<launch>
+
+    <param name="moveit_controller_manager" value="moveit_simple_controller_manager/MoveItSimpleControllerManager"/>
+
+    <!-- The rest of the params are specific to this plugin -->
+    <rosparam file="$(find svenzva_moveit)/config/ros_control_controllers.yaml"/>
+
+</launch>

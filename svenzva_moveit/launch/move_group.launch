@@ -2,6 +2,8 @@
 
   <include file="$(find svenzva_moveit)/launch/planning_context.launch" />
 
+  <arg name="controller_manager_name" default="svenzva_arm"/>
+
   <!-- GDB Debug Option -->
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
@@ -28,7 +30,7 @@
   <!-- Trajectory Execution Functionality -->
   <include ns="move_group" file="$(find svenzva_moveit)/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
     <arg name="moveit_manage_controllers" value="true" />
-    <arg name="moveit_controller_manager" value="svenzva_arm" unless="$(arg fake_execution)"/>
+    <arg name="moveit_controller_manager" value="$(arg controller_manager_name)" unless="$(arg fake_execution)"/>
     <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
   </include>
 

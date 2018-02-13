@@ -1,0 +1,37 @@
+<launch>
+
+  <arg name="db" default="false" />
+  <arg name="db_path" default="$(find svenzva_moveit)/default_warehouse_mongo_db" />
+  <arg name="debug" default="false" />
+  <arg name="simulation" default="true"/>
+  <remap from="joint_states" to="/revel/joint_states"/>
+
+  <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+  <include file="$(find svenzva_moveit)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+  </include>
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+  <include file="$(find svenzva_moveit)/launch/move_group.launch">
+    <arg name="controller_manager_name" value="svenzva_arm_gazebo"/>
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="fake_execution" value="false"/>
+    <arg name="info" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- Run Rviz and load the default config to see the state of the move_group node -->
+  <include file="$(find svenzva_moveit)/launch/moveit_rviz.launch">
+    <arg name="config" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+  </include>
+
+  <!-- If database loading was enabled, start mongodb as well -->
+  <include file="$(find svenzva_moveit)/launch/default_warehouse_db.launch" if="$(arg db)">
+    <arg name="moveit_warehouse_database_path" value="$(arg db_path)"/>
+  </include>
+
+</launch>
