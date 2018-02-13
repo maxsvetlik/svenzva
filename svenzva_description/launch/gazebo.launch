@@ -1,6 +1,8 @@
 <launch>
+  <arg name="run_trajectory" default="true"/>
+
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="paused" value="true"/>
+        <arg name="paused" value="false"/>
   </include>
   <node
     name="tf_footprint_base"
@@ -19,5 +21,7 @@
     type="rostopic"
     args="pub /calibrated std_msgs/Bool true" />
 
-  <include file="$(find svenzva_description)/launch/start_simulation_control.launch"/>
+  <include file="$(find svenzva_description)/launch/start_simulation_control.launch">
+    <arg name="run_trajectory" value="$(arg run_trajectory)"/>
+  </include>
 </launch>

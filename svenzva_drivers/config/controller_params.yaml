@@ -75,12 +75,12 @@ revel:
         - joint_6
 
       gains: # Required because we're controlling an effort interface
-        joint_1: {p: 30,  d: 5.0, i: 1.5, i_clamp: 1}
-        joint_2: {p: 100,  d: 3, i: 3, i_clamp: 1}
-        joint_3: {p: 50,  d: 3.5, i: 3, i_clamp: 1}
-        joint_4: {p: 20,  d: 0.8, i: 0.5, i_clamp: 1}
-        joint_5: {p: 10,  d: 0.3, i: 1, i_clamp: 1}
-        joint_6: {p: 1,  d: 0.04, i: 0.03, i_clamp: 1}
+        joint_1: {p: 500,  d: 50.0, i: 0, i_clamp: 1}
+        joint_2: {p: 500,  d: 30.0, i: 0, i_clamp: 1}
+        joint_3: {p: 500,  d: 12.0, i: 0, i_clamp: 1}
+        joint_4: {p: 500,  d: 10.8, i: 0.0, i_clamp: 1}
+        joint_5: {p: 200,  d: 4.3, i: 0, i_clamp: 1}
+        joint_6: {p: 100,  d: 0.1, i: 0.0, i_clamp: 1}
 
       state_publish_rate:  25            # Override default
   joint_state_controller:
