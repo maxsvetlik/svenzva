@@ -27,7 +27,6 @@
     <disable_collisions link1="finger_joint_2" link2="link_4" reason="Never" />
     <disable_collisions link1="finger_joint_2" link2="link_5" reason="Never" />
     <disable_collisions link1="finger_joint_2" link2="link_6" reason="Adjacent" />
-    <disable_collisions link1="finger_link_1" link2="link_1" reason="Never" />
     <disable_collisions link1="finger_link_1" link2="link_2" reason="Never" />
     <disable_collisions link1="finger_link_1" link2="link_3" reason="Never" />
     <disable_collisions link1="finger_link_1" link2="link_4" reason="Never" />
