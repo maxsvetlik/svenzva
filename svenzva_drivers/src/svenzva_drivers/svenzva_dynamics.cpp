@@ -81,6 +81,8 @@ void feel_efforts(ros::Publisher tau_pub){
         int gr = 1;
         /*if(i == 0)
             gr = 4;
+        else if(i == 3)
+            gr = 3;
         else if( i == 4)
             gr = 4;
         else if(i == 1 || i == 2)

@@ -61,7 +61,7 @@ class SvenzvaComplianceController():
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
         rospy.Subscriber("revel/model_efforts", JointState, self.model_effort_cb)
         self.test_pub = rospy.Publisher("/revel/smoothed_current", Float64)
-        self.gr = [4,6,6,1,4,1,1]
+        self.gr = [4,6,6,3,4,1,1]
         self.smoothed_torque = [0, 0, 0, 0, 0, 0, 0]
 
         self.model_torque = [0, 0, 0, 0, 0, 0, 0]
