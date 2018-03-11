@@ -281,7 +281,7 @@
       effort="10"
       velocity="2" />
     <axis
-      xyz="0 0 1" />
+      xyz="0 0 -1" />
   </joint>
   
   <link
@@ -387,7 +387,7 @@
     type="revolute">
     <origin
       xyz="-0.01475 0.08 0.001425"
-      rpy="1.5708 0 0" />
+      rpy="1.5708 1.5708 0" />
     <parent
       link="link_5" />
     <child
@@ -395,10 +395,10 @@
     <axis
       xyz="0 0 -1" />
     <limit
-      lower="-1.6"
-      upper="1.6"
-      effort="100"
-      velocity="10" />
+      lower="0.5"
+      upper="5.5"
+      effort="10"
+      velocity="2" />
   </joint>
   <link
     name="finger_link_1">
