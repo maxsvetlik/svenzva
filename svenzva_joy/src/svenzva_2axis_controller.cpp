@@ -124,7 +124,7 @@ int main(int argc, char** argv)
       svenzva_msgs::GripperGoal goal;
       if(gripper_open){
           goal.target_action = goal.CLOSE;
-          goal.target_current = 250;
+          goal.target_current = 200;
           gripper_open = false;
       }
       else{
@@ -132,6 +132,7 @@ int main(int argc, char** argv)
           gripper_open = true;
       }
       gripper_action.sendGoalAndWait(goal);
+      ros::Duration(1.0).sleep();
     }
     ros::Rate(10).sleep();
   }
