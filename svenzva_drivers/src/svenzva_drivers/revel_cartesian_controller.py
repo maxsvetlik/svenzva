@@ -50,6 +50,7 @@ from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import Robot
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Twist
+from moveit_msgs.srv import GetStateValidity
 
 import moveit_commander
 import moveit_msgs.msg
@@ -89,6 +90,7 @@ class RevelCartesianController:
         self.arm_speed_limit = rospy.get_param('arm_speed_limit', 20.0)
         self.collision_check_enabled = rospy.get_param('enable_collision_check', True)
 
+        self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
         self.group = None
         self.moveit_is_setup = False
 
@@ -112,18 +114,14 @@ class RevelCartesianController:
 
     def setup_moveit(self):
         try:
-            rospy.wait_for_service('/compute_fk', 10)
+            rospy.wait_for_service('/check_state_validity', 10)
         except rospy.ServiceException as exc:
             rospy.loginfo("MoveIt not loaded before timeout. Cartesian Velocity controller will not use collision checking.")
             rospy.logerr("Cartesian collision checking DISABLED")
             return
 
-        #self.robot = moveit_commander.RobotCommander()
-        self.scene = moveit_commander.PlanningSceneInterface()
-        rospy.loginfo(self.scene.get_objects())
         self.group = moveit_commander.MoveGroupCommander("svenzva_arm")
         self.group.set_planning_time(0.5)
-        #self.group.set_pose_reference_frame('/link_6')
         rospy.loginfo("Cartesian collision checking in the %s frame", self.group.get_planning_frame())
         self.moveit_is_setup = True
 
@@ -132,45 +130,19 @@ class RevelCartesianController:
     Returns true if movement causes collision
             false if movement does not cause collision
     """
-    def check_if_collision(self, joy_cmd):
+    def check_if_collision(self, qdot_out, scale_factor, dt):
         if not self.moveit_is_setup:
             return False
 
-        # if cmd is empty, can't be in collision
-        if joy_cmd == Twist():
-            return False
+        rs = moveit_msgs.msg.RobotState()
 
-        cur_pose = self.group.get_current_pose();
-        quaternion = cur_pose.pose.orientation
-        explicit_quat = [quaternion.x, quaternion.y, quaternion.z, quaternion.w]
-        euler = tf.transformations.euler_from_quaternion(explicit_quat)
-        new_euler = [euler[0] + joy_cmd.angular.x, euler[1] + joy_cmd.angular.y, euler[2] + joy_cmd.angular.z]
+        for i in range(0, self.mNumJnts-1):
+            rs.joint_state.name.append(self.js.name[i])
+            rs.joint_state.position.append(self.js.position[i] + (qdot_out[i]/scale_factor*dt))
 
-        quat = tf.transformations.quaternion_from_euler(new_euler[0], new_euler[1], new_euler[2])
-        pose_target = geometry_msgs.msg.Pose()
-        pose_target.orientation.x = quat[0]
-        pose_target.orientation.y = quat[1]
-        pose_target.orientation.z = quat[2]
-        pose_target.orientation.w = quat[3]
-        #multiply offsets for joystick scalars and temporal extrapolation(20, 0.01 respectively)
-        pose_target.position.x = cur_pose.pose.position.x + (joy_cmd.linear.x * 0.005)
-        pose_target.position.y = cur_pose.pose.position.y + (joy_cmd.linear.y * 0.005)
-        pose_target.position.z = cur_pose.pose.position.z + (joy_cmd.linear.z * 0.005)
-        #self.group.set_pose_reference_frame('/link_6')
-        rospy.loginfo("Pose:")
-        rospy.loginfo(cur_pose.pose.position)
-        rospy.loginfo("Temporal pose:")
-        rospy.loginfo(pose_target.position)
-        rospy.loginfo("")
-
-        self.group.set_pose_target(pose_target)
-
-        res = self.group.plan()
-        if res == moveit_msgs.msg.RobotTrajectory():
-            rospy.loginfo("In collision")
+        result = self.state_validity_srv(rs, "svenzva_arm", moveit_msgs.msg.Constraints() )
+        if not result.valid:
             return True
-        else:
-            rospy.loginfo("No collision")
         return False
 
     def loop(self):
@@ -225,8 +197,9 @@ class RevelCartesianController:
                 rospy.loginfo("Scaling all velocity by %f", 1/scale_factor)
 
             #check if movement causes collision, if enabled
-            if self.collision_check_enabled:
-                in_collision = self.check_if_collision(self.cart_vel)
+
+            if self.collision_check_enabled and not self.cart_vel == Twist():
+                in_collision = self.check_if_collision(qdot_out, scale_factor, 0.01)
                 if in_collision:
                     rospy.loginfo("Movement would cause collision with environment.")
                     for i in range(0, self.mNumJnts-1):
