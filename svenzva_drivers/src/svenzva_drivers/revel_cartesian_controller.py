@@ -92,10 +92,6 @@ class RevelCartesianController:
 
         self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
         self.group = None
-        self.moveit_is_setup = False
-
-        if self.collision_check_enabled:
-            self.setup_moveit()
 
         self.loop()
 
@@ -112,27 +108,18 @@ class RevelCartesianController:
     def cart_vel_cb(self, msg):
         self.cart_vel = msg
 
-    def setup_moveit(self):
-        try:
-            rospy.wait_for_service('/check_state_validity', 10)
-        except rospy.ServiceException as exc:
-            rospy.loginfo("MoveIt not loaded before timeout. Cartesian Velocity controller will not use collision checking.")
-            rospy.logerr("Cartesian collision checking DISABLED")
-            return
-
-        self.group = moveit_commander.MoveGroupCommander("svenzva_arm")
-        self.group.set_planning_time(0.5)
-        rospy.loginfo("Cartesian collision checking in the %s frame", self.group.get_planning_frame())
-        self.moveit_is_setup = True
-
     """
     Uses MoveIt to check if movement would cause collision with scene or self
     Returns true if movement causes collision
             false if movement does not cause collision
     """
     def check_if_collision(self, qdot_out, scale_factor, dt):
-        if not self.moveit_is_setup:
-            return False
+        try:
+            rospy.wait_for_service('/check_state_validity')
+        except rospy.ServiceException as exc:
+            rospy.loginfo("MoveIt not. Cartesian Velocity controller will not use collision checking.")
+            rospy.logerr("Cartesian collision checking DISABLED")
+            return
 
         rs = moveit_msgs.msg.RobotState()
 
@@ -149,10 +136,6 @@ class RevelCartesianController:
         rospy.sleep(1.0)
         while not rospy.is_shutdown():
             msg = self.cart_vel
-
-            #if msg == Twist():
-            #    rospy.sleep(0.25)
-            #    continue
 
             for i in range(0, self.mNumJnts):
                 self.jnt_q[i] = self.js.position[i];
@@ -199,7 +182,7 @@ class RevelCartesianController:
             #check if movement causes collision, if enabled
 
             if self.collision_check_enabled and not self.cart_vel == Twist():
-                in_collision = self.check_if_collision(qdot_out, scale_factor, 0.01)
+                in_collision = self.check_if_collision(qdot_out, scale_factor, 0.0075)
                 if in_collision:
                     rospy.loginfo("Movement would cause collision with environment.")
                     for i in range(0, self.mNumJnts-1):
