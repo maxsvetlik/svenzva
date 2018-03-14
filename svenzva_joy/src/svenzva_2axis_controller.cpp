@@ -132,7 +132,7 @@ int main(int argc, char** argv)
           gripper_open = true;
       }
       gripper_action.sendGoalAndWait(goal);
-      ros::Duration(1.0).sleep();
+      ros::Duration(0.2).sleep();
     }
     ros::Rate(10).sleep();
   }
