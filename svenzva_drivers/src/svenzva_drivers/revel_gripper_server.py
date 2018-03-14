@@ -60,7 +60,7 @@ class RevelGripperActionServer():
         self.mx_io = mx_io
         self.motor_id = 7
         self.closing_force = 150 #mA
-        self.opening_force = -150 #mA
+        self.opening_force = -300 #mA
         self.moving_distance = 2.0 #rad
 
         self.motor_state = MotorState()
