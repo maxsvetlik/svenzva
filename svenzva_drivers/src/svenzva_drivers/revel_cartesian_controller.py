@@ -85,7 +85,7 @@ class RevelCartesianController:
         self.last_twist = Twist()
         self.last_cmd = []
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
-        self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.003, 150);
+        self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.01, 150);
         #self.vel_solver.setLambda(0.1)
         self.jac_solver = PyKDL.ChainJntToJacSolver(self.chain)
 
@@ -160,6 +160,7 @@ class RevelCartesianController:
 
     def loop(self):
         rospy.sleep(1.0)
+        count = 0
         while not rospy.is_shutdown():
             msg = self.cart_vel
 
@@ -198,6 +199,21 @@ class RevelCartesianController:
             acc = 0.0
             for i in range(0, self.mNumJnts):
                 acc += math.pow(qdot_out[i], 2)
+
+            # This heuristic roughly stops the arm from oscillating at singularities, but can cause the arm to become fully stuck
+            #abs(qdot_out[2]) > 750
+            #if err==100 and abs(self.js.position[2]) < 0.2 :
+            #    self.send_zero_vel()
+            #    continue
+
+            # This heuristic reduces amplitude of oscillation
+            if abs(self.js.position[2]) < 0.2 and len(self.last_cmd) > 0:
+                self.send_last_vel()
+                rospy.sleep(0.1)
+                count+=1
+                if not count % 5 == 0:
+                    continue
+
 
             vel_scale = math.sqrt(acc) / self.arm_speed_limit
             if vel_scale > 1.0:
