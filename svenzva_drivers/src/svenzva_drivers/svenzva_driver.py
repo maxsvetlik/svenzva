@@ -61,7 +61,7 @@ class SvenzvaDriver:
 
     #adapted from controller_manager.py [https://github.com/SvenzvaRobotics/mx_dynamixel], 3/17/17
     def __init__(self,
-                 port_name='/dev/ttyACM0',
+                 port_name='/dev/ttyUSB0',
                  port_namespace='revel',
                  baud_rate='115200',
                  min_motor_id=1,
@@ -287,6 +287,7 @@ class SvenzvaDriver:
 
         rospy.loginfo("Started Cartesian controller")
 
+        compliance_demonstration = False
         if compliance_demonstration:
             rospy.loginfo("Starting with experimental dynamic compliance.")
             self.compliance_controller = SvenzvaComplianceController(self.port_namespace, self.dxl_io,False)

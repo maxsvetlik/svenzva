@@ -44,7 +44,7 @@ import rospkg
 import PyKDL
 import math
 import sys
-
+import numpy
 
 from pykdl_utils.kdl_parser import kdl_tree_from_urdf_model
 from urdf_parser_py.urdf import Robot
@@ -73,7 +73,7 @@ class RevelCartesianController:
 
         self.mx_io = mx_io
         self.tree = kdl_tree_from_urdf_model(self.robot)
-        self.chain = self.tree.getChain('base_link', 'link_6')
+        self.chain = self.tree.getChain('base_link', 'ee_link')
         self.mNumJnts = 6
         self.jnt_q = PyKDL.JntArray(self.mNumJnts);
         self.jnt_qd = PyKDL.JntArray(self.mNumJnts);
@@ -85,12 +85,23 @@ class RevelCartesianController:
         self.last_twist = Twist()
         self.last_cmd = []
         self.last_qdot = PyKDL.JntArray(self.mNumJnts)
-        self.vel_solver = PyKDL.ChainIkSolverVel_pinv(self.chain, 0.001, 1000);
+        self.vel_solver = PyKDL.ChainIkSolverVel_wdls(self.chain, 0.003, 150);
+        #self.vel_solver.setLambda(0.1)
+        self.jac_solver = PyKDL.ChainJntToJacSolver(self.chain)
+
+        self.jac = PyKDL.Jacobian(6)
         self.cart_vel = Twist()
         self.arm_speed_limit = rospy.get_param('arm_speed_limit', 20.0)
-        self.collision_check_enabled = rospy.get_param('enable_collision_check', True)
+        self.collision_check_enabled = rospy.get_param('enable_collision_check', False)
 
-        self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
+        if self.collision_check_enabled:
+            try:
+                rospy.wait_for_service('/check_state_validity')
+                self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
+            except rospy.ServiceException as exc:
+                rospy.loginfo("MoveIt not. Cartesian Velocity controller will not use collision checking.")
+                rospy.logerr("Cartesian collision checking DISABLED")
+                self.collision_check_enabled = False
         self.group = None
 
         self.loop()
@@ -114,13 +125,6 @@ class RevelCartesianController:
             false if movement does not cause collision
     """
     def check_if_collision(self, qdot_out, scale_factor, dt):
-        try:
-            rospy.wait_for_service('/check_state_validity')
-        except rospy.ServiceException as exc:
-            rospy.loginfo("MoveIt not. Cartesian Velocity controller will not use collision checking.")
-            rospy.logerr("Cartesian collision checking DISABLED")
-            return
-
         rs = moveit_msgs.msg.RobotState()
 
         for i in range(0, self.mNumJnts-1):
@@ -131,6 +135,28 @@ class RevelCartesianController:
         if not result.valid:
             return True
         return False
+
+    def send_zero_vel(self):
+        tup_list = []
+        for i in range(0, self.mNumJnts-1):
+            tup_list.append( (i+1, 0))
+        self.mx_io.set_multi_speed(tuple(tup_list))
+
+    def send_last_vel(self):
+        self.mx_io.set_multi_speed(tuple(self.last_cmd))
+
+
+    def get_det_of_pos(self, jnt_q):
+        self.jac_solver.JntToJac(jnt_q, self.jac)
+        a = numpy.array(numpy.array(tuple(self.jac.getColumn(0))))
+        b = numpy.array(numpy.array(tuple(self.jac.getColumn(1))))
+        c = numpy.array(numpy.array(tuple(self.jac.getColumn(2))))
+        d = numpy.array(numpy.array(tuple(self.jac.getColumn(3))))
+        e = numpy.array(numpy.array(tuple(self.jac.getColumn(4))))
+        f = numpy.array(numpy.array(tuple(self.jac.getColumn(5))))
+        np_ar = numpy.column_stack((a,b,c,d,e,f))
+
+        return numpy.linalg.det(numpy.asarray(np_ar))
 
     def loop(self):
         rospy.sleep(1.0)
@@ -149,15 +175,16 @@ class RevelCartesianController:
             err = self.vel_solver.CartToJnt(self.jnt_q, vel, qdot_out)
             if err == 1: #PyKDL.E_CONVERGE_PINV_SINGULAR:
                 rospy.loginfo("Cartesian movement solver converged but gave degraded solution. Skipping.")
-                return
+                continue
             elif err == -8: #PyKDL.E_SVD_FAILED:
                 rospy.loginfo("Cartesian movement solver did not converge. Skipping.")
-                return
+                continue
             elif err == 100:
                 rospy.loginfo("Cartesian movement converged but psuedoinverse in singular.")
             elif err != 0:
                 rospy.loginfo("Unspecified error: %d", err)
-                return
+                continue
+
 
             tup_list = []
             vals = []
@@ -192,6 +219,20 @@ class RevelCartesianController:
                     self.mx_io.set_multi_speed(tuple(tup_list))
                     rospy.sleep(0.05)
                     continue
+
+            new_jnts = PyKDL.JntArray(self.mNumJnts);
+
+            for i in range(0, self.mNumJnts-1):
+                new_jnts[i] += self.jnt_q[i] + (qdot_out[i] / scale_factor * 0.1)
+
+            #det = self.get_det_of_pos(new_jnts)
+            #if abs(det) < 1E-3:
+            #    rospy.loginfo("Degraded solution of too high velocity. You're probably near a joint limit. Jacobian det: %f", det)
+            #    scale_factor *= 2
+            #    self.send_zero_vel()
+            #    continue
+
+
 
             for i in range(0, self.mNumJnts-1):
                 #check if movement violates urdf joint limits

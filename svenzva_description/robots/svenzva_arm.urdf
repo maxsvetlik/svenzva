@@ -516,7 +516,13 @@
       effort="100"
       velocity="10" />
   </joint>
-
+  
+  <link name="ee_link"> </link>
+  <joint name="ee_joint" type="fixed">
+    <parent link="link_6"/>
+    <child link="ee_link"/>
+    <origin xyz="0 0 -0.05" rpy="3.14159 0 0"/>
+  </joint>
 
   <transmission name="joint_1_trans">
     <type>transmission_interface/SimpleTransmission</type>
