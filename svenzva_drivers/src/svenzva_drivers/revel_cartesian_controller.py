@@ -92,9 +92,10 @@ class RevelCartesianController:
         self.jac = PyKDL.Jacobian(6)
         self.cart_vel = Twist()
         self.arm_speed_limit = rospy.get_param('arm_speed_limit', 20.0)
-        self.collision_check_enabled = rospy.get_param('enable_collision_check', False)
+        self.collision_check_enabled = rospy.get_param('collision_check_enabled', False)
 
         if self.collision_check_enabled:
+            rospy.loginfo("MoveIt collision check ENABLED. Using environment information.")
             try:
                 rospy.wait_for_service('/check_state_validity')
                 self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
@@ -102,6 +103,8 @@ class RevelCartesianController:
                 rospy.loginfo("MoveIt not. Cartesian Velocity controller will not use collision checking.")
                 rospy.logerr("Cartesian collision checking DISABLED")
                 self.collision_check_enabled = False
+        else:
+            rospy.loginfo("MoveIt collision check DISabled. Not using environment information.")
         self.group = None
 
         self.loop()
@@ -200,19 +203,29 @@ class RevelCartesianController:
             for i in range(0, self.mNumJnts):
                 acc += math.pow(qdot_out[i], 2)
 
+            heuristic = 1
+
             # This heuristic roughly stops the arm from oscillating at singularities, but can cause the arm to become fully stuck
-            #abs(qdot_out[2]) > 750
-            #if err==100 and abs(self.js.position[2]) < 0.2 :
-            #    self.send_zero_vel()
-            #    continue
+            if heuristic == 1:
+                allow_mvmt = False
+                #abs(qdot_out[2]) > 750
+                if err==100 and abs(self.js.position[2]) < 0.2 :
+                    count+=1
+                    self.send_zero_vel()
+
+                    if count % 20 == 0:
+                        allow_mvmt = True
+                    if not allow_mvmt:
+                        continue
 
             # This heuristic reduces amplitude of oscillation
-            if abs(self.js.position[2]) < 0.2 and len(self.last_cmd) > 0:
-                self.send_last_vel()
-                rospy.sleep(0.1)
-                count+=1
-                if not count % 5 == 0:
-                    continue
+            elif heuristic == 2:
+                if abs(self.js.position[2]) < 0.2 and len(self.last_cmd) > 0:
+                    self.send_last_vel()
+                    rospy.sleep(0.05)
+                    count+=1
+                    if not count % 5 == 0:
+                        continue
 
 
             vel_scale = math.sqrt(acc) / self.arm_speed_limit

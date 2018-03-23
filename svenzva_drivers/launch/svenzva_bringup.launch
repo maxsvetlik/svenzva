@@ -8,8 +8,8 @@
     <!-- Determines if the gripper will open and close on successful startup -->
     <arg name="cycle_gripper_on_start" default="False"/>
 
-    <rosparam param="arm_speed_limit">40</rosparam>
-    <!-- <rosparam param="collision_check_enabled">false</rosparam> -->
+    <param name="arm_speed_limit" type="double" value="40"/>
+    <param name="collision_check_enabled" type="bool" value="false"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->
     <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, finger_joint_1, finger_joint_2 ]</rosparam>
