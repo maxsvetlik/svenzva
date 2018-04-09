@@ -283,9 +283,11 @@ class SvenzvaDriver:
         gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
         gripper_server.start()
 
-        cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
 
-        rospy.loginfo("Started Cartesian controller")
+        mode = rospy.get_param('~mode', "user_defined")
+        if mode == 'velocity':
+            cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
+            rospy.loginfo("Started Cartesian controller")
 
         compliance_demonstration = False
         if compliance_demonstration:
