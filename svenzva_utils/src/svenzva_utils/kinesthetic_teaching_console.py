@@ -40,6 +40,7 @@ import rospkg
 import actionlib
 import yaml
 import yamlordereddictloader
+import re
 from std_msgs.msg import Bool, Int32
 from svenzva_msgs.msg import *
 from svenzva_drivers.srv import *
@@ -83,6 +84,7 @@ class KinestheticTeaching:
 
         self.interaction_name = None
         self.playback_file = None
+        self.menu = None
 
         #Controls when a given pose will return, when played back on the arm
         # where delta is the maximum deviation of all joints from the target pose array
@@ -166,7 +168,7 @@ class KinestheticTeaching:
         #check if the input filename contains only valid characters
         self.interaction_name = raw_input("Set interaction (file)name: ")
         while not re.match(r'[\w-]*$', self.interaction_name):
-            self.interaction_name = raw_input("Set interaction (file)name: ")
+            self.interaction_name = raw_input("Name contained invalid characters.\n Set interaction (file)name: ")
         return
 
     """
@@ -232,16 +234,12 @@ class KinestheticTeaching:
     Plays back an entire interaction- all poses specified in an interaction file
     """
     def playback_interaction(self):
-        filename_list = self.get_filelist()
-        file_index = SelectionMenu.get_selection(filename_list)
-
-        #check if user exited
-        if file_index == len(filename_list):
+        if self.interaction_name is None:
+            raw_input("You must set the interaction before saving poses. Press Enter to continue.")
             return
 
-        filename = filename_list[file_index]
         try:
-            f = open(self.path+"/config/" + filename)
+            f = open(self.path+"/config/" + self.interaction_name + ".yaml")
             qmap = yaml.load(f, Loader=yamlordereddictloader.Loader)
             f.close()
         except:
@@ -249,9 +247,12 @@ class KinestheticTeaching:
             raw_input("Could not find specified state file.")
             return
 
+        raw_input("Press Enter to play back: " + self.interaction_name + ".yaml")
         for state in qmap:
             if self.js_playback(qmap, state):
                 self.wait_for_stall(qmap[state])
+
+        return
 
     # This method spins until a stall condition is detected.
     # A stall condition happens when the joint states published from one time step to another have a
@@ -278,39 +279,48 @@ class KinestheticTeaching:
         mypath = self.path +"/config/"
         return [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
+    def list_existing_interactions(self):
+        files = self.get_filelist()
+        str_build = ""
+        for item in files:
+            str_build += str(item) + "\n"
+        raw_input(str_build)
+        return
+
+
     def start_console_menu(self):
         # Create the menu
-        menu = CursesMenu("Main", "Teach or playback a guided interaction")
+        self.menu = CursesMenu("Main", "Teach or playback a guided interaction")
 
         gripper_menu = CursesMenu("Gripper Interaction", "Teaching a new guided interaction")
         record_menu = CursesMenu("Record Interaction", "Teaching a new guided interaction")
+        playback_menu = CursesMenu("Playback Interaction", "Playing back an existing interaction")
 
-        record_submenu_item = SubmenuItem("Record a new interaction", record_menu, menu)
+        record_submenu_item = SubmenuItem("Record a new interaction", record_menu, self.menu)
         gripper_submenu_item = SubmenuItem("Set gripper action", gripper_menu, record_menu)
-
+        playback_submenu_item = SubmenuItem("Playback an existing interaction", playback_menu, self.menu)
 
         # A FunctionItem runs a Python function when selected
         save_pose_item = FunctionItem("Save robot pose", self.record_state_interaction)
         save_gripper_open_item = FunctionItem("Open gripper", self.record_gripper_interaction, [True])
         save_gripper_close_item = FunctionItem("Close gripper", self.record_gripper_interaction, [False])
-
-        playback_item = FunctionItem("Playback an existing interaction", self.playback_interaction)
+        playback_item = FunctionItem("Playback interaction", self.playback_interaction)
         set_int_name_item = FunctionItem("Set interaction name", self.set_new_interaction_name)
-
+        list_existing_interactions_item = FunctionItem("List existing interaction names", self.list_existing_interactions)
 
         gripper_menu.append_item(save_gripper_open_item)
         gripper_menu.append_item(save_gripper_close_item)
 
-
-        record_menu.append_item(set_int_name_item)
         record_menu.append_item(save_pose_item)
         record_menu.append_item(gripper_submenu_item)
 
-        menu.append_item(record_submenu_item)
-        menu.append_item(playback_item)
+        self.menu.append_item(set_int_name_item)
+        self.menu.append_item(list_existing_interactions_item)
+        self.menu.append_item(record_submenu_item)
+        self.menu.append_item(playback_item)
 
         # Finally, we call show to show the menu and allow the user to interact
-        menu.show()
+        self.menu.show()
 
 if __name__ == '__main__':
     #setup_console_menu()
