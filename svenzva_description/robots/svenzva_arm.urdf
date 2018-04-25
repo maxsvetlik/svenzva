@@ -30,7 +30,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/base_link.STL" />
+          filename="package://svenzva_description/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -44,7 +44,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/base_link.STL" />
+          filename="package://svenzva_description/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -76,7 +76,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_1.STL" />
+          filename="package://svenzva_description/meshes/link_1.STL" />
       </geometry>
       <material
         name="">
@@ -90,7 +90,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_1.STL" />
+          filename="package://svenzva_description/meshes/link_1.STL" />
       </geometry>
     </collision>
   </link>
@@ -136,7 +136,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_2.STL" />
+          filename="package://svenzva_description/meshes/link_2.STL" />
       </geometry>
       <material
         name="">
@@ -150,7 +150,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_2.STL" />
+          filename="package://svenzva_description/meshes/link_2.STL" />
       </geometry>
     </collision>
   </link>
@@ -195,7 +195,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_3.STL" />
+          filename="package://svenzva_description/meshes/link_3.STL" />
       </geometry>
       <material
         name="">
@@ -209,7 +209,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_3.STL" />
+          filename="package://svenzva_description/meshes/link_3.STL" />
       </geometry>
     </collision>
   </link>
@@ -254,7 +254,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_4.STL" />
+          filename="package://svenzva_description/meshes/link_4.STL" />
       </geometry>
       <material
         name="">
@@ -268,7 +268,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_4.STL" />
+          filename="package://svenzva_description/meshes/link_4.STL" />
       </geometry>
     </collision>
   </link>
@@ -313,7 +313,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_5.STL" />
+          filename="package://svenzva_description/meshes/link_5.STL" />
       </geometry>
       <material
         name="">
@@ -327,7 +327,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_5.STL" />
+          filename="package://svenzva_description/meshes/link_5.STL" />
       </geometry>
     </collision>
   </link>
@@ -372,7 +372,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_6.STL" />
+          filename="package://svenzva_description/meshes/link_6.STL" />
       </geometry>
       <material
         name="">
@@ -386,7 +386,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://4_24_18_revel/meshes/link_6.STL" />
+          filename="package://svenzva_description/meshes/link_6.STL" />
       </geometry>
     </collision>
   </link>
@@ -404,8 +404,8 @@
     <axis
       xyz="0 0 -1" />
     <limit
-      lower="3.14"
-      upper="7.85"
+      lower="0.0"
+      upper="5.85"
       effort="10"
       velocity="1" />
   </joint>
