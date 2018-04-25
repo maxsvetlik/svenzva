@@ -34,6 +34,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <stdlib.h> 
+#include <cmath>
 
 #include <kdl/frames.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
@@ -42,7 +43,6 @@
 
 #include <sensor_msgs/JointState.h>
 
-#include <stdlib.h>
 
 sensor_msgs::JointState joint_states;
 KDL::Tree my_tree;
@@ -115,14 +115,17 @@ void feel_efforts(ros::Publisher tau_pub){
         for( int i = 0; i < mNumJnts; i++){
             //Compute the error in the model vs present output torques
             if( i == 1){
-                double spring_offset = 1.80347051143 * joint_states.position[i];
+                //spring function: y= -0.000012159725010x^3 + 0.001933370127203x^2 + 0.002502918014389x + 0.075320089110718
+                double spring_offset = (-0.0001215972501*std::pow(joint_states.position[i], 3)) + (0.0019337012*std::pow(joint_states.position[i], 2)) + (0.0025029181439*joint_states.position[i]) + 0.0753200891107  ;
                 jnt_taugc(i) = jnt_taugc(i) - spring_offset; 
             }
             
             if (i == 0)
                 divisor = 10000;
             if (i == 1 || i == 2)
-                divisor = 6;
+                divisor = 7;
+            else if (i == 3)
+                divisor = 3;
             else if (i == 4)
                 divisor = 4;
             model_states.effort[i] = jnt_taugc(i) / divisor;
