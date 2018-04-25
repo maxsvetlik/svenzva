@@ -73,7 +73,7 @@ class RevelCartesianController:
 
         self.mx_io = mx_io
         self.mNumJnts = 6
-        self.gear_ratios = [4,6,6,3,4,1]
+        self.gear_ratios = [4,7,7,3,4,1]
         self.js = JointState()
         self.min_limit = 20.0
         self.max_limit = 100.0

@@ -68,7 +68,7 @@ class JointTrajectoryActionController():
 
         self.motor_states = []
         self.joint_to_id = dict(zip(self.joint_names, range(1, self.num_joints+1)))
-        self.gear_ratios = [4,6,6,3,4,1]
+        self.gear_ratios = [4,7,7,3,4,1]
         self.num_joints = len(self.joint_names)
         self.initialize()
 

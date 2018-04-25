@@ -86,7 +86,7 @@ void feel_efforts(ros::Publisher tau_pub){
         else if( i == 4)
             gr = 4;
         else if(i == 1 || i == 2)
-            gr = 6;
+            gr = 7;
         */
         double diff = model_states.effort[i] - joint_states.effort[i];
         double frc = 0.0;
