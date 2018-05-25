@@ -1,0 +1,26 @@
+<launch>
+  <arg name="joy_dev" default="/dev/input/js1"/>
+
+  <!-- joy node -->
+  <node respawn="true" pkg="joy" type="joy_node" name="svenzva_joy_node" output="screen">
+    <param name="dev" type="string" value="$(arg joy_dev)" />
+    <param name="deadzone" value="0.2" />
+    <param name="autorepeat_rate" value="1"/>
+    <param name="coalesce_interval" value="0.1"/>
+  </node>
+
+  <!-- Axes -->
+  <param name="rate" value="10" type="int"/>
+  <param name="axis_linear_x" value="1" type="int"/>
+  <param name="axis_linear_y" value="0" type="int"/>
+  <param name="axis_linear_z" value="2" type="int"/>
+  <param name="axis_angular_x" value="4" type="int"/>
+  <param name="axis_angular_y" value="3" type="int"/>
+  <param name="axis_angular_z" value="5" type="int"/>
+  <param name="scale_linear" value="20.0" type="double"/>
+  <param name="scale_angular" value="30.0" type="double"/>
+
+   
+  <node pkg="svenzva_joy" type="svenzva_3axis_controller" name="svenzva_3axis_manager" output="screen"/>
+
+</launch>
