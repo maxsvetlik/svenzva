@@ -21,6 +21,6 @@
   <param name="scale_angular" value="30.0" type="double"/>
 
    
-  <node pkg="svenzva_joy" type="svenzva_2axis_controller" name="svenzva_2axis_manager" output="screen"/>
+  <node pkg="svenzva_joy" type="svenzva_6axis_controller" name="svenzva_6axis_manager" output="screen"/>
 
 </launch>

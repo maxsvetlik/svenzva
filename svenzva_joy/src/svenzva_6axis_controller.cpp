@@ -108,7 +108,7 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "svenzva_2axis_controller");
+  ros::init(argc, argv, "svenzva_6axis_controller");
   SvenzvaArmJoystick svenzva_joy;
   
   gripperClient gripper_action("/revel/gripper_action", true);
