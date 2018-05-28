@@ -48,7 +48,8 @@ class SvenzvaArmJoystick
 {
 public:
   SvenzvaArmJoystick();
-  sensor_msgs::Joy  last_cmd;
+  sensor_msgs::Joy last_cmd;
+  bool valid;
   int gripper_button;
 
 private:
@@ -84,7 +85,8 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   nh_.param("gripper_button", gripper_button, gripper_button);
   nh_.param("scale_angular", a_scale_, a_scale_);
   nh_.param("scale_linear", l_scale_, l_scale_);
-
+  
+  valid = false;
   r = ros::Rate(rate_);
   vel_pub_ = nh_.advertise<geometry_msgs::Twist>("revel/eef_velocity", 1);
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &SvenzvaArmJoystick::joyCallback, this);
@@ -103,6 +105,7 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   twist.angular.z = a_scale_*joy->axes[angular_z];
   vel_pub_.publish(twist);
   last_cmd = *joy;
+  valid = true;
 }
 
 
@@ -110,12 +113,14 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "svenzva_6axis_controller");
   SvenzvaArmJoystick svenzva_joy;
-  
   gripperClient gripper_action("/revel/gripper_action", true);
   gripper_action.waitForServer();
   bool gripper_open = true; 
 
-  ros::Duration(0.5).sleep();
+  while(svenzva_joy.valid == false){
+    ros::Duration(1.0).sleep();
+    ros::spinOnce();
+  }
 
   while(ros::ok()){
     ros::spinOnce();
@@ -134,7 +139,7 @@ int main(int argc, char** argv)
       gripper_action.sendGoalAndWait(goal);
       ros::Duration(0.25).sleep();
     }
-    ros::Rate(15).sleep();
+    ros::Rate(10).sleep();
   }
 
 

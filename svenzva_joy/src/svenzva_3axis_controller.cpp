@@ -51,6 +51,7 @@ public:
   SvenzvaArmJoystick();
   sensor_msgs::Joy  cur_cmd;
   sensor_msgs::Joy  last_cmd;
+  bool valid;
   int mode_button;
   int mode;
   int linear_x;
@@ -90,6 +91,7 @@ SvenzvaArmJoystick::SvenzvaArmJoystick():
   nh_.param("scale_angular", a_scale_, a_scale_);
   nh_.param("scale_linear", l_scale_, l_scale_);
 
+  valid = false;
   r = ros::Rate(rate_);
   mode_pub_ = nh_.advertise<std_msgs::Int32>("revel/eef_velocity_mode", 1);
   vel_pub_ = nh_.advertise<geometry_msgs::Twist>("revel/eef_velocity", 1);
@@ -116,6 +118,7 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   mode_pub_.publish(mode_cmd);
   last_cmd = cur_cmd;
   cur_cmd = *joy;
+  valid = true;
 }
 
 
@@ -128,7 +131,10 @@ int main(int argc, char** argv)
   gripper_action.waitForServer();
   bool gripper_open = true; 
 
-  ros::Duration(0.5).sleep();
+  while(!svenzva_joy.valid){
+    ros::Duration(0.5).sleep();
+    ros::spinOnce();
+  }
 
   int last_mode = 0;
   while(ros::ok()){
