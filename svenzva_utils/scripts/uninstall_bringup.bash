@@ -1,0 +1,3 @@
+rosrun robot_upstart uninstall revel_bringup
+rosrun robot_upstart uninstall revel_joystick
+

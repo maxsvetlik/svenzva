@@ -1,0 +1,8 @@
+<!-- 
+   This launch file is used for installing as a system service through the robot_upstart package.
+   It is not intended to be called directly.
+-->
+
+<launch>
+  <node name="exhibit_script" pkg="svenzva_utils" type="bringup_exhibit.bash" />
+</launch>

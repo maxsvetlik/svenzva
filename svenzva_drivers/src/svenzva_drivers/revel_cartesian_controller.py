@@ -176,7 +176,6 @@ class RevelCartesianController:
             #Singularity handling
             #wrist_det = self.jacobian_solver.get_jacobian_wrist_det()
             shoulder_det = self.jacobian_solver.get_jacobian_det()
-            rospy.loginfo(shoulder_det)
             heuristic = 0
 
             # This heuristic reduces amplitude of oscillation around singularities
