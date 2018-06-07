@@ -355,7 +355,7 @@
     <inertial>
       <origin
         xyz="1.70870985564525E-05 0.00518372417730809 -0.0301873871981205"
-        rpy="0 0 0" />
+        rpy="0 0 3.14159" />
       <mass
         value="0.217466355310719" />
       <inertia
@@ -369,7 +369,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 0 3.14159" />
       <geometry>
         <mesh
           filename="package://svenzva_description/textures/link_6.dae" />
@@ -405,7 +405,7 @@
       xyz="0 0 -1" />
     <limit
       lower="0.2"
-      upper="3.14"
+      upper="5.5"
       effort="10"
       velocity="1" />
   </joint>
