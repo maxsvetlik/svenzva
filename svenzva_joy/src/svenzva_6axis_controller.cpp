@@ -97,11 +97,11 @@ void SvenzvaArmJoystick::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   geometry_msgs::Twist twist;
 
-  twist.linear.x = -1 * l_scale_*joy->axes[linear_x];
+  twist.linear.x = l_scale_*joy->axes[linear_x];
   twist.linear.y = l_scale_*joy->axes[linear_y];
   twist.linear.z = l_scale_*joy->axes[linear_z];
   twist.angular.x = a_scale_*joy->axes[angular_x];
-  twist.angular.y = a_scale_*joy->axes[angular_y];
+  twist.angular.y = -1 * a_scale_*joy->axes[angular_y];
   twist.angular.z = a_scale_*joy->axes[angular_z];
   vel_pub_.publish(twist);
   last_cmd = *joy;
