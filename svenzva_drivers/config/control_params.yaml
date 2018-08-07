@@ -55,7 +55,7 @@
     acceleration: 10
     velocity: 100
     gr: 1
-    mode: 3
+    mode: 5
 7:
     p: 500
     i: 0
