@@ -41,6 +41,9 @@ import actionlib
 import yaml
 import yamlordereddictloader
 import re
+import random
+import string
+
 from std_msgs.msg import Bool, Int32
 from svenzva_msgs.msg import *
 from svenzva_drivers.srv import *
@@ -95,16 +98,17 @@ class KinestheticTeaching:
         self.joint_states = data
 
     def open_gripper(self):
+         self.gripper_goal = GripperGoal()
          self.gripper_goal.target_action = self.gripper_goal.OPEN
          self.gripper_client.send_goal(self.gripper_goal)
-         rospy.sleep(0.5)
+         rospy.sleep(1.0)
          return
 
     def close_gripper(self):
         self.gripper_goal.target_action = self.gripper_goal.CLOSE
         self.gripper_goal.target_current = 200
         self.gripper_client.send_goal(self.gripper_goal)
-        rospy.sleep(0.5)
+        rospy.sleep(1.0)
         return
 
     """
@@ -144,6 +148,7 @@ class KinestheticTeaching:
         #if not os.path.exists(self.path+"/config/"+self.interaction_name+".yaml"):
         #    append_write = "w+"
         try:
+            ran = random.randint(1,10000)
             f = open(self.path+"/config/" + self.interaction_name + ".yaml", "a+")
             #f = open(self.path+"/config/" + self.interaction_name + ".yaml", append_write)
 
@@ -155,7 +160,7 @@ class KinestheticTeaching:
             else:
                 ar.append("close_gripper")
                 self.close_gripper()
-            f.write("gripper: " +str(ar) + "\n")
+            f.write("gripper" + str(ran) + ": " +str(ar) + "\n")
             f.close()
         except:
             raw_input("Unable to open file. Path: " + self.path+"/config/"+self.interaction_name+".yaml")
