@@ -138,8 +138,16 @@ int main(int argc, char** argv){
     ros::init(argc, argv, "svenzva_dynamics");
 
     ros::NodeHandle n;
-    
-    for(int i = 0; i < 7; i++)
+    if (n.getParam("numberMotors", mNumJnts))
+    {
+      ROS_INFO("Got param!!!");
+    }
+    else
+    {
+      ROS_ERROR("Failed to get param 'my_param'");
+    }
+
+    for(int i = 0; i < mNumJnts+1; i++)
         joint_states.effort.push_back(0.0);
 
     ros::Subscriber js_sub = n.subscribe("joint_states", 1, js_cb);

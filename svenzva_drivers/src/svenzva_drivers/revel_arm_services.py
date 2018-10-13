@@ -74,7 +74,8 @@ class RevelArmServices():
         self.start()
 
     def motor_state_cb(self, data):
-        self.motor_state = data.motor_states[self.gripper_id - 1]
+        if self.num_motors >= self.gripper_id:
+            self.motor_state = data.motor_states[self.gripper_id - 1]
 
 
     """
@@ -83,20 +84,21 @@ class RevelArmServices():
     """
     def remove_fingers_cb(self, data):
         force = 25
-        cur_pos = self.motor_state.position
+        if self.num_motors >= self.gripper_id:
+            cur_pos = self.motor_state.position
 
-        #switch to position mode for simplicity
-        self.mx_io.set_torque_enabled(7, 0)
-        self.mx_io.set_operation_mode(7, 4)
-        self.mx_io.set_torque_enabled(7, 1)
+            #switch to position mode for simplicity
+            self.mx_io.set_torque_enabled(7, 0)
+            self.mx_io.set_operation_mode(7, 4)
+            self.mx_io.set_torque_enabled(7, 1)
 
-        self.mx_io.set_position(7, int(round(self.reset_pos * 4096.0 / 6.2831853)))
-        rospy.sleep(5.0)
+            self.mx_io.set_position(7, int(round(self.reset_pos * 4096.0 / 6.2831853)))
+            rospy.sleep(5.0)
 
-        #switch back to torque mode
-        self.mx_io.set_torque_enabled(7, 0)
-        self.mx_io.set_operation_mode(7, 0)
-        self.mx_io.set_torque_enabled(7, 1)
+            #switch back to torque mode
+            self.mx_io.set_torque_enabled(7, 0)
+            self.mx_io.set_operation_mode(7, 0)
+            self.mx_io.set_torque_enabled(7, 1)
 
         return
 
@@ -105,17 +107,18 @@ class RevelArmServices():
     fingers have been pushed into the gripper by the user.
     """
     def insert_fingers_cb(self, data):
-        self.mx_io.set_torque_enabled(7, 0)
-        self.mx_io.set_operation_mode(7, 4)
-        self.mx_io.set_torque_enabled(7, 1)
+        if self.num_motors >= self.gripper_id:
+            self.mx_io.set_torque_enabled(7, 0)
+            self.mx_io.set_operation_mode(7, 4)
+            self.mx_io.set_torque_enabled(7, 1)
 
-        self.mx_io.set_position(7, int(round(0 * 4096.0 / 6.2831853)))
-        rospy.sleep(5.0)
+            self.mx_io.set_position(7, int(round(0 * 4096.0 / 6.2831853)))
+            rospy.sleep(5.0)
 
 
-        self.mx_io.set_torque_enabled(7, 0)
-        self.mx_io.set_operation_mode(7, 0)
-        self.mx_io.set_torque_enabled(7, 1)
+            self.mx_io.set_torque_enabled(7, 0)
+            self.mx_io.set_operation_mode(7, 0)
+            self.mx_io.set_torque_enabled(7, 1)
 
         return
 

@@ -76,7 +76,7 @@ class SvenzvaDriver:
         self.port_namespace = port_namespace
         self.baud_rate = baud_rate
         self.min_motor_id = min_motor_id
-        self.max_motor_id = max_motor_id
+        self.max_motor_id = rospy.get_param('max_motor_id', max_motor_id)
         self.update_rate = rospy.get_param('~update_rate', update_rate)
         self.diagnostics_rate = diagnostics_rate
         self.readback_echo = readback_echo
@@ -280,8 +280,10 @@ class SvenzvaDriver:
 
         arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
 
-        gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
-        gripper_server.start()
+        #Only start gripper services if gripper motor is present
+        if self.max_motor_id >= 7:
+            gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
+            gripper_server.start()
 
 
         mode = rospy.get_param('~mode', "user_defined")
@@ -340,8 +342,8 @@ class SvenzvaDriver:
 
 
         #set current / torque limit for gripper
-        self.dxl_io.set_goal_current(7, 0)
-        self.dxl_io.set_current_limit(7, 1900)
+        #self.dxl_io.set_goal_current(7, 0)
+        #self.dxl_io.set_current_limit(7, 1900)
 
 
 

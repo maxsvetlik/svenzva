@@ -11,6 +11,10 @@
     <arg name="moveit_for_cart" default="False"/>
     <param name="arm_speed_limit" type="double" value="40"/>
     <param name="collision_check_enabled" type="bool" value="$(arg moveit_for_cart)"/>
+    
+    <!-- these arguments will change if you have a custom build -->
+    <param name="num_motors_present" type="int" value="7"/>
+    <param name="max_motor_id" type="int" value="7"/>
 
     <!-- Set the joint names to be aggregated by the joint state publisher -->
     <rosparam param="joint_names">[joint_1, joint_2, joint_3, joint_4, joint_5, joint_6, finger_joint_1, finger_joint_2 ]</rosparam>
