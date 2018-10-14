@@ -13,7 +13,7 @@
 //    copyright notice, this list of conditions and the following
 //    disclaimer in the documentation and/or other materials provided
 //    with the distribution.
-//  * Neither the name of University of Arizona nor the names of its
+//  * Neither the name of Svenzva Robotics LLC nor the names of its
 //   contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
@@ -43,6 +43,15 @@
 
 #include <sensor_msgs/JointState.h>
 
+
+/*
+ * SvenzvaDynamics is a ROS component that is used in Kinesthetic Teaching of the Revel robot.
+ *
+ * Given the current robot state, this class uses a dynamic model to estimate the gravity load 
+ * on each joint due to the robot's own physical characteristics.
+ * 
+ * This class has many opportunities for fine-tuning parameters if the force estimation is inaccurate.
+ */
 
 sensor_msgs::JointState joint_states;
 KDL::Tree my_tree;
@@ -79,15 +88,6 @@ void feel_efforts(ros::Publisher tau_pub){
       KDL::Wrench wr = KDL::Wrench();
       if( !first_run) {
         int gr = 1;
-        /*if(i == 0)
-            gr = 4;
-        else if(i == 3)
-            gr = 3;
-        else if( i == 4)
-            gr = 4;
-        else if(i == 1 || i == 2)
-            gr = 7;
-        */
         double diff = model_states.effort[i] - joint_states.effort[i];
         double frc = 0.0;
 

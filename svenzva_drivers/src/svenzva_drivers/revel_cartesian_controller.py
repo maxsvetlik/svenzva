@@ -13,7 +13,7 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of University of Arizona nor the names of its
+#  * Neither the name of Svenzva Robotics LLC nor the names of its
 #    contributors may be used to endorse or promote products derived
 #    from this software without specific prior written permission.
 #
@@ -31,9 +31,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-A python version of the corresponding cpp functions of the same name.
-This allows this to be run as part of the overall driver, and thus have
-direct access to the communications layer.
+
+RevelCartesianController is a ROS component that allows cartesian velocity control of the Revel robot.
+This component is run as part a module of the robot driver, giving it explicit USB / Serial access for
+greater performance.
+
+This method of robot controls require the robot motors to be in velocity control mode.
+This class expects a 6DOF robot, and is thus untested for custom robot builds. Significant modification
+to the robot will violate the kinematic model present in the SvenzvaKinematics class.
+In this event, a generic (or generated) kinematic solver should be used in place of SvenzvaKinematics.
 
 Author Maxwell Svetlik
 Copyright Svenzva Robotics
