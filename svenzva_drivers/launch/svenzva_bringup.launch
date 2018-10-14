@@ -12,7 +12,10 @@
     <param name="arm_speed_limit" type="double" value="40"/>
     <param name="collision_check_enabled" type="bool" value="$(arg moveit_for_cart)"/>
     
-    <!-- these arguments will change if you have a custom build -->
+    <!-- 
+        `num_motors_present`, `max_motor_id` and `joint_names` will change if you have a custom build 
+        note that if you change these, you'll also need to edit the robot URDF and reconfigure MoveIt!
+    -->
     <param name="num_motors_present" type="int" value="7"/>
     <param name="max_motor_id" type="int" value="7"/>
 

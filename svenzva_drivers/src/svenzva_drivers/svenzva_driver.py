@@ -341,9 +341,10 @@ class SvenzvaDriver:
                 self.dxl_io.set_velocity_profile(i, params[i]['velocity'])
 
 
-        #set current / torque limit for gripper
-        #self.dxl_io.set_goal_current(7, 0)
-        #self.dxl_io.set_current_limit(7, 1900)
+        #set current / torque limit for gripper if present
+        if self.max_motor_id >= 7:
+            self.dxl_io.set_goal_current(7, 0)
+            self.dxl_io.set_current_limit(7, 1900)
 
 
 
