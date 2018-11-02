@@ -81,6 +81,7 @@ class RevelCartesianController:
         self.mNumJnts = 6
         self.gear_ratios = [4,7,7,3,4,1]
         self.js = JointState()
+        self.js_last = JointState()
         self.min_limit = 20.0
         self.max_limit = 100.0
         self.last_twist = Twist()
@@ -152,6 +153,9 @@ class RevelCartesianController:
     def loop(self):
         rospy.sleep(1.0)
         count = 0
+        time_step = 0.025
+        z_sign = 1
+        self.js_last = self.js
         while not rospy.is_shutdown():
             msg = self.cart_vel
 
@@ -169,9 +173,21 @@ class RevelCartesianController:
             for i in range(0, self.mNumJnts):
                 joint_positions = numpy.append(joint_positions, self.js.position[i])
 
+            lim = 0.0
+            offset = 0.0
+            #alignment singularity detection for J2 & J3
+            if self.js_last.position[2] > lim + offset:
+                if self.js.position[2] < lim:
+                    z_sign *= -1
+            elif self.js_last.position[2] < lim - offset:
+                if self.js.position[2] > lim:
+                    z_sign *= -1
+
+
+
             self.ee_velocity[0] = msg.linear.x
             self.ee_velocity[1] = msg.linear.y
-            self.ee_velocity[2] = msg.linear.z
+            self.ee_velocity[2] = z_sign * msg.linear.z
             self.ee_velocity[3] = msg.angular.x
             self.ee_velocity[4] = msg.angular.y
             self.ee_velocity[5] = 0 #msg.angular.z
@@ -221,6 +237,7 @@ class RevelCartesianController:
             if scale_factor != 1:
                 rospy.logdebug("Scaling cartesian velocity: scaling all velocity by %f", 1/scale_factor)
 
+
             #check if movement causes collision, if enabled
 
             if self.collision_check_enabled and not self.cart_vel == Twist():
@@ -246,10 +263,24 @@ class RevelCartesianController:
 
 
             if len(tup_list) > 0:
+                self.js_last = self.js
                 self.last_cmd = tup_list
                 self.last_qdot = qdot_out
                 self.mx_io.set_multi_speed(tuple(tup_list))
                 self.last_cmd_zero = False
-            rospy.sleep(0.05)
+            rospy.sleep(time_step)
 
+            #alignment singularity detection
+            tup_list = []
+            if self.js_last.position[4] > lim + 0.06:
+                if self.js.position[4] < lim:
+                    tup_list.append( (5, int(round(self.radpm_to_rpm(100 * self.gear_ratios[i] / scale_factor) / 0.229 ))))
+                    self.mx_io.set_multi_speed(tuple(tup_list))
+
+            elif self.js_last.position[4] < lim - 0.06:
+                if self.js.position[4] > lim:
+                    tup_list.append( (5, int(round(self.radpm_to_rpm(-100 * self.gear_ratios[i] / scale_factor) / 0.229 ))))
+                    self.mx_io.set_multi_speed(tuple(tup_list))
+
+            rospy.sleep(time_step)
 
