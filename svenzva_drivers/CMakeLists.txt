@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     hardware_interface
     controller_manager
+    dynamic_reconfigure
 )
 
 #kdl is cmake only. Must be separte
@@ -32,12 +33,13 @@ generate_messages(
    actionlib_msgs
    std_msgs
 )
+generate_dynamic_reconfigure_options( config/RevelFirmwareDynamic.cfg)
 
 catkin_package(
     DEPENDS actionlib_msgs orocos_kdl roscpp
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${Eigen_INCLUDE_DIRS} )
 
 add_executable(svenzva_dynamics src/svenzva_drivers/svenzva_dynamics.cpp)
 target_link_libraries(svenzva_dynamics ${catkin_LIBRARIES})
