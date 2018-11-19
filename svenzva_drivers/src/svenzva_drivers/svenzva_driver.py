@@ -48,6 +48,7 @@ from mx_driver.dynamixel_const import *
 from svenzva_drivers.joint_trajectory_action_controller import *
 from svenzva_drivers.revel_cartesian_controller import *
 from svenzva_drivers.revel_arm_services import *
+from svenzva_drivers.dynamic_reconfigure_server import *
 from svenzva_drivers.revel_gripper_server import *
 from svenzva_drivers.svenzva_compliance_controller import *
 from std_msgs.msg import Bool
@@ -277,6 +278,9 @@ class SvenzvaDriver:
 
         self.fkine_action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
         self.fkine_action.start()
+
+        self.dynamic_reconfigure_srv = RevelDynamicParameterServer(self.port_namespace, self.dxl_io)
+        self.dynamic_reconfigure_srv.start()
 
         arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
 
