@@ -248,15 +248,13 @@ class SvenzvaDriver:
         Thread(target=self.compliance_controller.start).start()
 
     """
-    Sets motor mode based on parameter file
+    Sets motor mode
     """
-    def set_user_defined_mode(self, params):
+    def set_user_defined_mode(self):
         tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
         self.dxl_io.sync_set_torque_enabled(tup_list_dis)
 
-        tup_list_op = []
-        for i in range(self.min_motor_id, self.max_motor_id + 1):
-            tup_list_op.append((i, params[i]["mode"]))
+        tup_list_op = tuple(((1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,0)))
         self.dxl_io.sync_set_operation_mode(tup_list_op)
 
         tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
@@ -272,13 +270,16 @@ class SvenzvaDriver:
         rospy.sleep(1.0)
         jtac.start()
 
+        rospy.loginfo("Starting Revel trajectory action")
         self.traj_client = actionlib.SimpleActionClient('/revel/follow_joint_trajectory', FollowJointTrajectoryAction)
         self.traj_client.wait_for_server()
 
 
+        rospy.loginfo("Starting Revel forward kinematics action")
         self.fkine_action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
         self.fkine_action.start()
 
+        rospy.loginfo("Starting Revel Arm Services")
         arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
         Thread(target=arm_utils.start).start()
 
@@ -286,16 +287,16 @@ class SvenzvaDriver:
         if self.max_motor_id >= 7:
             gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
             gripper_server.start()
+            rospy.loginfo("Starting Revel gripper server.")
 
+        rospy.loginfo("Starting dynamic reconfigure.")
         self.dynamic_reconfigure_srv = RevelDynamicParameterServer(self.port_namespace, self.dxl_io)
         Thread(target=self.dynamic_reconfigure_srv.start).start()
 
 
-
-        mode = rospy.get_param('~mode', "user_defined")
-        if mode == 'velocity':
-            cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
-            rospy.loginfo("Started Cartesian controller")
+        rospy.loginfo("Starting Revel Cartesian controller.")
+        cart_server = RevelCartesianController(self.port_namespace, self.dxl_io)
+        Thread(target=cart_server.loop).start()
 
         compliance_demonstration = False
         if compliance_demonstration:
@@ -314,38 +315,16 @@ class SvenzvaDriver:
     #NOTE: Due to dynamixel limitations, initial encoder values must be [-4096, 4096]
     #otherwise, the motor_states will be inaccurate
     def initialze_motor_states(self):
-        rospack = rospkg.RosPack()
-        path = rospack.get_path('svenzva_drivers')
-        config_file = rospy.get_param('~param_file', 'control_params.yaml')
-
-        params = ''
-        with open( path+"/config/"+config_file, 'r') as stream:
-            try:
-                params = yaml.load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-                rospy.logerr("Unable to open control_params.yaml. Exiting driver.")
-                exit()
-
         mode = rospy.get_param('~mode', "user_defined")
         teaching_mode = mode == "gravity"
         vel_mode = mode == "velocity"
 
         if teaching_mode:
             self.teaching_mode()
-            return
         elif vel_mode:
             self.velocity_mode()
         else:
-            #for nearly atomic context switch, use sync functions
-            self.set_user_defined_mode(params)
-            for i in range(self.min_motor_id, self.max_motor_id + 1):
-                self.dxl_io.set_position_p_gain(i, params[i]['p'])
-                self.dxl_io.set_position_i_gain(i, params[i]['i'])
-                self.dxl_io.set_position_d_gain(i, params[i]['d'])
-                self.dxl_io.set_acceleration_profile(i, params[i]['acceleration'])
-                self.dxl_io.set_velocity_profile(i, params[i]['velocity'])
-
+            self.set_user_defined_mode()
 
         #set current / torque limit for gripper if present
         if self.max_motor_id >= 7:

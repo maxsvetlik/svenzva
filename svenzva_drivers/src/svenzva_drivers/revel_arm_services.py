@@ -52,8 +52,7 @@ from std_srvs.srv import Empty
 from std_msgs.msg import Float64, Int32
 from svenzva_msgs.msg import MotorState, MotorStateList, GripperFeedback, GripperResult, GripperAction
 
-from svenzva_msgs.srv import SetTorqueEnable, HomeArm
-#from svenzva_drivers.svenzva_driver import SvenzvaDriver
+from svenzva_msgs.srv import SetTorqueEnable, HomeArm, SetControlMode
 
 
 class RevelArmServices():
@@ -63,6 +62,7 @@ class RevelArmServices():
         self.mx_io = mx_io
         self.num_motors = num_motors
         self.gripper_id = 7
+        self.torque_srv = rospy.Service('/revel/SetControlMode', SetControlMode, self.control_mode_cb)
         self.torque_srv = rospy.Service('/revel/SetTorqueEnable', SetTorqueEnable, self.torque_enable_cb)
         self.home_srv =rospy.Service('home_arm_service', HomeArm, self.home_arm)
         self.remove_fingers = rospy.Service('/revel/gripper/remove_fingers', Empty, self.remove_fingers_cb)
@@ -120,6 +120,23 @@ class RevelArmServices():
             self.mx_io.set_torque_enabled(7, 1)
 
         return
+
+    def control_mode_cb(self, data):
+        tup_list_op = tuple()
+        if data.control_mode == data.POSITION:
+            tup_list_op = tuple(((1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,0)))
+        elif data.control_mode == data.VELOCITY:
+            tup_list_op = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,0)))
+        elif data.control_mode == data.TORQUE:
+            tup_list_op = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        else:
+            tup_list_op = tuple(((1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,0)))
+        tup_list_dis = tuple(((1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0)))
+        tup_list_en = tuple(((1,1),(2,1),(3,1),(4,1),(5,1),(6,1),(7,1)))
+        self.mx_io.sync_set_torque_enabled(tup_list_dis)
+        self.mx_io.sync_set_operation_mode(tup_list_op)
+        self.mx_io.sync_set_torque_enabled(tup_list_en)
+        return True
 
     def torque_enable_cb(self, data):
         if len(data.motor_list) !=  self.num_motors:

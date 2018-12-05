@@ -96,7 +96,7 @@ class RevelCartesianController:
         self.collision_check_enabled = rospy.get_param('collision_check_enabled', False)
 
         if self.collision_check_enabled:
-            rospy.loginfo("MoveIt collision check ENABLED. Using environment information.")
+            rospy.loginfo("MoveIt collision check for cartesian movements ENABLED. Using environment information.")
             try:
                 rospy.wait_for_service('/check_state_validity')
                 self.state_validity_srv = rospy.ServiceProxy('/check_state_validity', GetStateValidity)
@@ -105,10 +105,8 @@ class RevelCartesianController:
                 rospy.logerr("Cartesian collision checking DISABLED")
                 self.collision_check_enabled = False
         else:
-            rospy.loginfo("MoveIt collision check DISabled. Not using environment information.")
+            rospy.loginfo("MoveIt collision check for cartesian movements DISabled. Not using environment information.")
         self.group = None
-
-        self.loop()
 
 
     def js_cb(self, msg):
