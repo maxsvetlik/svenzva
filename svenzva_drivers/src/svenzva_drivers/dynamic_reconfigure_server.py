@@ -116,29 +116,31 @@ class RevelDynamicParameterServer():
                 self.set_velocity_profile(7, config.joint_7_vel)
 
         if level & 1<<2: # Joint 1 PID
-            self.set_position_PID(1, config.joint_1_P, config.joint_1_I, config.joint_1_D, config.joint_1_Feedforward1_velocity, config.joint_1_Feedforward2_acceleration)
+            self.set_position_PID(1, config.joint_1_P, config.joint_1_I, config.joint_1_D, config.joint_1_Feedforward1_velocity, config.joint_1_Feedforward2_acceleration, config.joint_1_velocity_P, config.joint_1_velocity_I)
         if level & 1<<3: #Joint 2 PID
-            self.set_position_PID(2, config.joint_2_P, config.joint_2_I, config.joint_2_D, config.joint_2_Feedforward1_velocity, config.joint_2_Feedforward2_acceleration)
+            self.set_position_PID(2, config.joint_2_P, config.joint_2_I, config.joint_2_D, config.joint_2_Feedforward1_velocity, config.joint_2_Feedforward2_acceleration, config.joint_2_velocity_P, config.joint_2_velocity_I)
         if level & 1<<4: #Joint 3 PID
-            self.set_position_PID(3, config.joint_3_P, config.joint_3_I, config.joint_3_D, config.joint_3_Feedforward1_velocity, config.joint_3_Feedforward2_acceleration)
+            self.set_position_PID(3, config.joint_3_P, config.joint_3_I, config.joint_3_D, config.joint_3_Feedforward1_velocity, config.joint_3_Feedforward2_acceleration, config.joint_3_velocity_P, config.joint_3_velocity_I)
         if level & 1<<5: #Joint 4 PID
-            self.set_position_PID(4, config.joint_4_P, config.joint_4_I, config.joint_4_D, config.joint_4_Feedforward1_velocity, config.joint_4_Feedforward2_acceleration)
+            self.set_position_PID(4, config.joint_4_P, config.joint_4_I, config.joint_4_D, config.joint_4_Feedforward1_velocity, config.joint_4_Feedforward2_acceleration, config.joint_4_velocity_P, config.joint_4_velocity_I)
         if level & 1<<6: #Joint 5 PID
-            self.set_position_PID(5, config.joint_5_P, config.joint_5_I, config.joint_5_D, config.joint_5_Feedforward1_velocity, config.joint_5_Feedforward2_acceleration)
+            self.set_position_PID(5, config.joint_5_P, config.joint_5_I, config.joint_5_D, config.joint_5_Feedforward1_velocity, config.joint_5_Feedforward2_acceleration, config.joint_5_velocity_P, config.joint_5_velocity_I)
         if level & 1<<7: #Joint 6 PID
-            self.set_position_PID(6, config.joint_6_P, config.joint_6_I, config.joint_6_D, config.joint_6_Feedforward1_velocity, config.joint_6_Feedforward2_acceleration)
+            self.set_position_PID(6, config.joint_6_P, config.joint_6_I, config.joint_6_D, config.joint_6_Feedforward1_velocity, config.joint_6_Feedforward2_acceleration, config.joint_6_velocity_P, config.joint_6_velocity_I)
         if level & 1<<8: #Joint 7 PID
-            self.set_position_PID(7, config.joint_7_P, config.joint_7_I, config.joint_7_D, config.joint_7_Feedforward1_velocity, config.joint_7_Feedforward2_acceleration)
+            self.set_position_PID(7, config.joint_7_P, config.joint_7_I, config.joint_7_D, config.joint_7_Feedforward1_velocity, config.joint_7_Feedforward2_acceleration, config.joint_7_velocity_P, config.joint_7_velocity_I)
 
         self.last_configuration = config.copy()
         return config
 
-    def set_position_PID(self, motor_id, p_gain_val, i_gain_val, d_gain_val, ff1_gain, ff2_gain):
+    def set_position_PID(self, motor_id, p_gain_val, i_gain_val, d_gain_val, ff1_gain, ff2_gain, vel_p, vel_i):
         self.mx_io.set_position_p_gain(motor_id, p_gain_val)
         self.mx_io.set_position_i_gain(motor_id, i_gain_val)
         self.mx_io.set_position_d_gain(motor_id, d_gain_val)
         self.mx_io.set_position_feedfwd1_gain(motor_id, ff1_gain)
         self.mx_io.set_position_feedfwd2_gain(motor_id, ff2_gain)
+        self.mx_io.set_velocity_p_gain(motor_id, vel_p)
+        self.mx_io.set_velocity_i_gain(motor_id, vel_i)
 
     def set_acceleration_profile(self, motor_id, gain):
         self.mx_io.set_acceleration_profile(motor_id, gain)
