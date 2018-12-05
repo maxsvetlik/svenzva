@@ -71,7 +71,6 @@ class RevelArmServices():
         rospy.Subscriber("revel/motor_states", MotorStateList, self.motor_state_cb, queue_size=1)
 
         self.reset_pos = -3.4
-        self.start()
 
     def motor_state_cb(self, data):
         if self.num_motors >= self.gripper_id:
@@ -146,7 +145,7 @@ class RevelArmServices():
 
     def start(self):
         rospy.loginfo("Starting RevelArmServices...")
-        #rospy.spin()
+        rospy.spin()
 
 
     def home_arm(self, data):

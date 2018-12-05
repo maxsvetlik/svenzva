@@ -279,15 +279,17 @@ class SvenzvaDriver:
         self.fkine_action = actionlib.SimpleActionServer("svenzva_joint_action", SvenzvaJointAction, self.fkine_action, auto_start = False)
         self.fkine_action.start()
 
-        self.dynamic_reconfigure_srv = RevelDynamicParameterServer(self.port_namespace, self.dxl_io)
-        self.dynamic_reconfigure_srv.start()
-
         arm_utils = RevelArmServices(self.port_namespace, self.dxl_io, self.max_motor_id)
+        Thread(target=arm_utils.start).start()
 
         #Only start gripper services if gripper motor is present
         if self.max_motor_id >= 7:
             gripper_server = RevelGripperActionServer(self.port_namespace, self.dxl_io)
             gripper_server.start()
+
+        self.dynamic_reconfigure_srv = RevelDynamicParameterServer(self.port_namespace, self.dxl_io)
+        Thread(target=self.dynamic_reconfigure_srv.start).start()
+
 
 
         mode = rospy.get_param('~mode', "user_defined")
