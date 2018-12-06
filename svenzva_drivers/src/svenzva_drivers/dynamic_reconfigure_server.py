@@ -70,12 +70,22 @@ class RevelDynamicParameterServer():
         self.last_configuration = {}
         self.mx_io = mx_io
         self.controller_namespace = controller_namespace
-
+        self.gr = [4,7,7,3,4,1,1]
     def callback(self, config, level):
         #first run
         if self.is_first_configuration:
             self.last_configuration = config.copy()
             self.is_first_configuration = False
+            # load initial values
+            self.set_acceleration_profile(config.joint_acc_limit)
+            self.set_velocity_profile(config.joint_vel_limit)
+            self.set_position_PID(1, config.joint_1_P, config.joint_1_I, config.joint_1_D, config.joint_1_Feedforward1_velocity, config.joint_1_Feedforward2_acceleration, config.joint_1_velocity_P, config.joint_1_velocity_I)
+            self.set_position_PID(2, config.joint_2_P, config.joint_2_I, config.joint_2_D, config.joint_2_Feedforward1_velocity, config.joint_2_Feedforward2_acceleration, config.joint_2_velocity_P, config.joint_2_velocity_I)
+            self.set_position_PID(3, config.joint_3_P, config.joint_3_I, config.joint_3_D, config.joint_3_Feedforward1_velocity, config.joint_3_Feedforward2_acceleration, config.joint_3_velocity_P, config.joint_3_velocity_I)
+            self.set_position_PID(4, config.joint_4_P, config.joint_4_I, config.joint_4_D, config.joint_4_Feedforward1_velocity, config.joint_4_Feedforward2_acceleration, config.joint_4_velocity_P, config.joint_4_velocity_I)
+            self.set_position_PID(5, config.joint_5_P, config.joint_5_I, config.joint_5_D, config.joint_5_Feedforward1_velocity, config.joint_5_Feedforward2_acceleration, config.joint_5_velocity_P, config.joint_5_velocity_I)
+            self.set_position_PID(6, config.joint_6_P, config.joint_6_I, config.joint_6_D, config.joint_6_Feedforward1_velocity, config.joint_6_Feedforward2_acceleration, config.joint_6_velocity_P, config.joint_6_velocity_I)
+            self.set_position_PID(7, config.joint_7_P, config.joint_7_I, config.joint_7_D, config.joint_7_Feedforward1_velocity, config.joint_7_Feedforward2_acceleration, config.joint_7_velocity_P, config.joint_7_velocity_I)
             return config
 
         #if user hasn't enabled parameter control, do not process parameter changes
@@ -84,36 +94,12 @@ class RevelDynamicParameterServer():
 
         #process parameter changes
         if level & 1: #acceleration profile
-            if config.joint_1_acc != self.last_configuration.joint_1_acc:
-                self.set_acceleration_profile(1, config.joint_1_acc)
-            elif config.joint_2_acc != self.last_configuration.joint_2_acc:
-                self.set_acceleration_profile(2, config.joint_2_acc)
-            elif config.joint_3_acc != self.last_configuration.joint_3_acc:
-                self.set_acceleration_profile(3, config.joint_3_acc)
-            elif config.joint_4_acc != self.last_configuration.joint_4_acc:
-                self.set_acceleration_profile(4, config.joint_4_acc)
-            elif config.joint_5_acc != self.last_configuration.joint_5_acc:
-                self.set_acceleration_profile(5, config.joint_5_acc)
-            elif config.joint_6_acc != self.last_configuration.joint_6_acc:
-                self.set_acceleration_profile(6, config.joint_6_acc)
-            elif config.joint_7_acc != self.last_configuration.joint_7_acc:
-                self.set_acceleration_profile(7, config.joint_7_acc)
+            if config.joint_acc_limit != self.last_configuration.joint_acc_limit:
+                self.set_acceleration_profile(config.joint_acc_limit)
 
         if level & 1<<1: #velocity profile
-            if config.joint_1_vel != self.last_configuration.joint_1_vel:
-                self.set_velocity_profile(1, config.joint_1_vel)
-            elif config.joint_2_vel != self.last_configuration.joint_2_vel:
-                self.set_velocity_profile(2, config.joint_2_vel)
-            elif config.joint_3_vel != self.last_configuration.joint_3_vel:
-                self.set_velocity_profile(3, config.joint_3_vel)
-            elif config.joint_4_vel != self.last_configuration.joint_4_vel:
-                self.set_velocity_profile(4, config.joint_4_vel)
-            elif config.joint_5_vel != self.last_configuration.joint_5_vel:
-                self.set_velocity_profile(5, config.joint_5_vel)
-            elif config.joint_6_vel != self.last_configuration.joint_6_vel:
-                self.set_velocity_profile(6, config.joint_6_vel)
-            elif config.joint_7_vel != self.last_configuration.joint_7_vel:
-                self.set_velocity_profile(7, config.joint_7_vel)
+            if config.joint_vel_limit != self.last_configuration.joint_vel_limit:
+                self.set_velocity_profile(config.joint_vel_limit)
 
         if level & 1<<2: # Joint 1 PID
             self.set_position_PID(1, config.joint_1_P, config.joint_1_I, config.joint_1_D, config.joint_1_Feedforward1_velocity, config.joint_1_Feedforward2_acceleration, config.joint_1_velocity_P, config.joint_1_velocity_I)
@@ -142,11 +128,25 @@ class RevelDynamicParameterServer():
         self.mx_io.set_velocity_p_gain(motor_id, vel_p)
         self.mx_io.set_velocity_i_gain(motor_id, vel_i)
 
-    def set_acceleration_profile(self, motor_id, gain):
-        self.mx_io.set_acceleration_profile(motor_id, gain)
+    # scales all accelerations uniformly accounting for gear ratios
+    def set_acceleration_profile(self,gain):
+        self.mx_io.set_acceleration_profile(1, gain*self.gr[0])
+        self.mx_io.set_acceleration_profile(2, gain*self.gr[1])
+        self.mx_io.set_acceleration_profile(3, gain*self.gr[2])
+        self.mx_io.set_acceleration_profile(4, gain*self.gr[3])
+        self.mx_io.set_acceleration_profile(5, gain*self.gr[4])
+        self.mx_io.set_acceleration_profile(6, gain*self.gr[5])
+        self.mx_io.set_acceleration_profile(7, gain*self.gr[6])
 
-    def set_velocity_profile(self, motor_id, gain):
-        self.mx_io.set_velocity_profile(motor_id, gain)
+    # scales all velocity unfiformly accounting for gear ratios
+    def set_velocity_profile(self, gain):
+        self.mx_io.set_velocity_profile(1, gain*self.gr[0])
+        self.mx_io.set_velocity_profile(2, gain*self.gr[1])
+        self.mx_io.set_velocity_profile(3, gain*self.gr[2])
+        self.mx_io.set_velocity_profile(4, gain*self.gr[3])
+        self.mx_io.set_velocity_profile(5, gain*self.gr[4])
+        self.mx_io.set_velocity_profile(6, gain*self.gr[5])
+        self.mx_io.set_velocity_profile(7, gain*self.gr[6])
 
     def start(self):
         srv = Server(RevelFirmwareDynamicConfig, self.callback)

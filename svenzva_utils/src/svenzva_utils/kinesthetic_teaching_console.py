@@ -256,7 +256,7 @@ class KinestheticTeaching:
         for state in qmap:
             if self.js_playback(qmap, state):
                 self.wait_for_stall(qmap[state])
-
+                rospy.sleep(0.5)
         return
 
     # This method spins until a stall condition is detected.
