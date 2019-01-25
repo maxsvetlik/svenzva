@@ -309,8 +309,6 @@ class SvenzvaDriver:
     """
     Initialize internal motor parameters that are reset when powered down.
     Enables torque mode.
-
-    Uses settings in ../config/control_params.yaml
     """
     #NOTE: Due to dynamixel limitations, initial encoder values must be [-4096, 4096]
     #otherwise, the motor_states will be inaccurate
@@ -330,8 +328,6 @@ class SvenzvaDriver:
         if self.max_motor_id >= 7:
             self.dxl_io.set_goal_current(7, 0)
             self.dxl_io.set_current_limit(7, 1900)
-
-
 
     """
     TODO
