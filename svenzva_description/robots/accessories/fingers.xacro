@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="revel_finger">
+    <xacro:macro name="revel_finger" params="parent finger_number mesh_path *origin *axis">
+        
+        <link name="finger_link_${finger_number}">
+		<inertial>
+			<xacro:insert_block name="origin" />
+			<mass value="0.0220307791071739" />
+			<inertia
+				ixx="9.08331950596468E-06"
+				ixy="-2.05394082888464E-06"
+				ixz="-2.23772944669454E-06"
+				iyy="1.04239718244321E-05"
+				iyz="-2.75990314800171E-06"
+				izz="9.60841591398502E-06" />
+		</inertial>
+		<visual>
+		  <origin
+			xyz="0 0 0"
+			rpy="0 0 -3.14159" />
+		  <geometry>
+			<mesh
+                filename="${mesh_path}"/>
+		  </geometry>
+		  <material
+			name="">
+			<color
+			  rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+		  </material>
+		</visual>
+		<collision>
+		  <origin
+			xyz="0 0 0"
+			rpy="0 0 0" />
+		  <geometry>
+			<mesh
+                filename="${mesh_path}" />
+		  </geometry>
+		</collision>
+	  </link>
+
+	  <joint name="finger_joint_${finger_number}" type="prismatic">
+		<origin
+		  xyz="0 0 -0.052509"
+		  rpy="-3.1416 -1.8964E-18 3.1416" />
+		<parent
+            link="${parent}" />
+		<child
+            link="finger_link_${finger_number}" />
+		<xacro:insert_block name="axis" />
+		<limit
+		  lower="0"
+		  upper="0.05"
+		  effort="100"
+		  velocity="10" />
+	  </joint>
+    </xacro:macro>
+</robot>

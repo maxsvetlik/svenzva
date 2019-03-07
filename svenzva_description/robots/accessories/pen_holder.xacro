@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="pen_holder">
+    <xacro:macro name="pen_holder" params="parent *origin">
+		<joint name="pen_holder_joint" type="fixed">
+            <xacro:insert_block name="origin" />
+            <parent link="${parent}" />
+            <child link="pen_holder_link" />
+        </joint>
+        
+	    <link name="pen_holder_link">
+			<visual>
+				<geometry>
+					<mesh filename="package://svenzva_description/meshes/accessories/pen_holder.STL" />
+				</geometry>
+			</visual>
+		</link>
+
+    </xacro:macro>
+</robot>
