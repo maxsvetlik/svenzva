@@ -2,19 +2,52 @@
 
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="vacuum_holder">
     <xacro:macro name="vacuum_holder" params="parent *origin">
-		<joint name="vacuum_holder_joint" type="fixed">
-            <xacro:insert_block name="origin" />
-            <parent link="${parent}" />
-            <child link="vacuum_holder_link" />
-        </joint>
-        
-	    <link name="vacuum_holder_link">
-			<visual>
-				<geometry>
-					<mesh filename="package://svenzva_description/meshes/accessories/vacuum_holder.STL" />
-				</geometry>
-			</visual>
-		</link>
+	<link name="vacuum_holder_base_link">
+    <visual>
+	  <xacro:insert_block name="origin"/>
+      <geometry>
+          <mesh filename="package://svenzva_description/textures/accessories/vacuum_holder.dae"/>
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+		<xacro:insert_block name="origin"/>      
+      <geometry>
+        <mesh filename="package://svenzva_description/meshes/accessories/vacuum_holder.STL"/>
+      </geometry>
+    </collision>
+    </link>
+
+    <joint name="vacuum_holder_joint" type="fixed">
+		<origin xyz="0 0 -0.052002" rpy="-3.1416 0 3.1416" />            
+		<parent link="${parent}" />
+		<child link="vacuum_holder_base_link" />
+	</joint>
+
+	<link name="vacuum_holder_suction_base_link">
+		<origin xyz="0 0 0.16" rpy="0 0 0"/>
+	</link>
+
+	<joint name="vacuum_holder_suction_base_joint" type="fixed">
+		<origin xyz="0 0 0.0591" rpy="0 0 0" />            
+		<parent link="vacuum_holder_base_link" />
+		<child link="vacuum_holder_suction_base_link" />
+	</joint>
+
+	<link name="vacuum_holder_suction_tip_link">
+		<origin xyz="0 0 0.16" rpy="0 0 0"/>
+	</link>
+
+	<joint name="vacuum_holder_suction_tip_joint" type="fixed">
+		<origin xyz="0 0 0.0125" rpy="0 0 0" />            
+		<parent link="vacuum_holder_suction_base_link" />
+		<child link="vacuum_holder_suction_tip_link" />
+	</joint>
+
 
     </xacro:macro>
 </robot>

@@ -4,6 +4,7 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="revel" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Set link name properties -->
   <gazebo>
     <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
       <robotNamespace>/revel/</robotNamespace>
@@ -210,63 +211,35 @@
     <axis xyz="0 0 -1"/>
     <limit effort="10" lower="0.2" upper="5.5" velocity="1"/>
   </joint>
-  <link name="finger_link_1">
-    <inertial>
-      <origin rpy="0 0 1.570796" xyz="0 0 -0.00492"/>
-      <mass value="0.0220307791071739"/>
-      <inertia ixx="9.08331950596468E-06" ixy="-2.05394082888464E-06" ixz="-2.23772944669454E-06" iyy="1.04239718244321E-05" iyz="-2.75990314800171E-06" izz="9.60841591398502E-06"/>
-    </inertial>
+  <link name="pen_holder_base_link">
     <visual>
-      <origin rpy="0 0 1.570796" xyz="0 0 -0.00492"/>
+      <origin rpy="0 0 -1.570796" xyz="0 0 -0.003175"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_pen_holder.dae"/>
       </geometry>
       <material name="">
         <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 -1.570796" xyz="0 0 -0.003175"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_pen_holder.STL"/>
       </geometry>
     </collision>
   </link>
-  <joint name="finger_joint_1" type="prismatic">
-    <origin rpy="-3.1416 -1.8964E-18 3.1416" xyz="0 0 -0.052509"/>
+  <joint name="pen_holder_joint" type="fixed">
+    <origin rpy="-3.1416 0 3.1416" xyz="0 0 -0.052002"/>
     <parent link="link_6"/>
-    <child link="finger_link_1"/>
-    <axis xyz="0 -1 0"/>
-    <limit effort="100" lower="0" upper="0.05" velocity="10"/>
+    <child link="pen_holder_base_link"/>
   </joint>
-  <link name="finger_link_2">
-    <inertial>
-      <origin rpy="0 0 -1.570796" xyz="0 0 -0.00492"/>
-      <mass value="0.0220307791071739"/>
-      <inertia ixx="9.08331950596468E-06" ixy="-2.05394082888464E-06" ixz="-2.23772944669454E-06" iyy="1.04239718244321E-05" iyz="-2.75990314800171E-06" izz="9.60841591398502E-06"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 -1.570796" xyz="0 0 -0.00492"/>
-      <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
-      </geometry>
-      <material name="">
-        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
-      </geometry>
-    </collision>
+  <link name="pen_holder_tip_link">
+    <origin rpy="0 0 0" xyz="0 0 0.16"/>
   </link>
-  <joint name="finger_joint_2" type="prismatic">
-    <origin rpy="-3.1416 -1.8964E-18 3.1416" xyz="0 0 -0.052509"/>
-    <parent link="link_6"/>
-    <child link="finger_link_2"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="100" lower="0" upper="0.05" velocity="10"/>
+  <joint name="pen_holder_tip_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0.16"/>
+    <parent link="pen_holder_base_link"/>
+    <child link="pen_holder_tip_link"/>
   </joint>
   <link name="ee_link"> </link>
   <joint name="ee_joint" type="fixed">

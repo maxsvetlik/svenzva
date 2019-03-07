@@ -40,8 +40,8 @@
 
 	  <joint name="finger_joint_${finger_number}" type="prismatic">
 		<origin
-		  xyz="0 0 -0.052509"
-		  rpy="-3.1416 -1.8964E-18 3.1416" />
+		  xyz="0 0 -0.052002"
+		  rpy="-3.1416 0 3.1416" />
 		<parent
             link="${parent}" />
 		<child
