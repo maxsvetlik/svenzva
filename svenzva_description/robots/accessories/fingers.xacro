@@ -15,10 +15,8 @@
 				iyz="-2.75990314800171E-06"
 				izz="9.60841591398502E-06" />
 		</inertial>
-		<visual>
-		  <origin
-			xyz="0 0 0"
-			rpy="0 0 -3.14159" />
+        <visual>
+		  <xacro:insert_block name="origin" />
 		  <geometry>
 			<mesh
                 filename="${mesh_path}"/>

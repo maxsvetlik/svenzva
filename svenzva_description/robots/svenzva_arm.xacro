@@ -5,7 +5,10 @@
    <xacro:property name="finger_type" value="standard" />
    <xacro:property name="svenzva_vacuum_gripper_attachment" value="false" />
    <xacro:property name="svenzva_pen_gripper_attachment" value="false" />
-   
+
+
+   <xacro:property name="H_PI" value="1.570796"/>
+   <xacro:property name="PI" value="3.14159"/>
    <!-- Set link name properties --> 
    <xacro:property name="end_effector_link_name" value="ee_link"/>
 
@@ -442,12 +445,12 @@
   </joint>
 
   <xacro:revel_finger parent="link_6" finger_number="1" mesh_path="package://svenzva_description/meshes/finger_standard.STL">
-      <origin xyz="0 0 -0.00196" rpy="0 0 -3.14159" />
+      <origin xyz="0 0 -0.00492" rpy="0 0 ${H_PI}" />
       <axis xyz="0 -1 0" />
   </xacro:revel_finger>
 
   <xacro:revel_finger parent="link_6" finger_number="2" mesh_path="package://svenzva_description/meshes/finger_standard.STL">
-      <origin xyz="0 0 -0.00196" rpy="0 0 0" />
+      <origin xyz="0 0 -0.00492" rpy="0 0 -${H_PI}" />
       <axis xyz="0 1 0" />
   </xacro:revel_finger>
 
