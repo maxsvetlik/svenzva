@@ -8,7 +8,7 @@
 
    <!-- Set gripper's configurable options: finger type, gripper accessories, etc -->
    <xacro:property name="finger_type" value="${finger_tapped}" />
-   <xacro:property name="gripper_attachment" value="true"/>
+   <xacro:property name="gripper_attachment" value="false"/>
    <xacro:property name="svenzva_vacuum_gripper_attachment" value="false" />
    <xacro:property name="svenzva_pen_gripper_attachment" value="true" />
 

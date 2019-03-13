@@ -2,9 +2,10 @@ moveit_setup_assistant_config:
   URDF:
     package: svenzva_description
     relative_path: robots/svenzva_arm.urdf
+    xacro_args: ""
   SRDF:
     relative_path: config/svenzva_arm.srdf
   CONFIG:
     author_name: Max Svetlik
     author_email: max@svenzva.com
-    generated_timestamp: 1520809221
+    generated_timestamp: 1552497706
