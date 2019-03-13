@@ -4,10 +4,10 @@
    <!-- Finger constants -->
    <xacro:property name="finger_standard" value="standard" />
    <xacro:property name="finger_tapped" value="standard_tapped" />
-
+   <xacro:property name="finger_center" value="center"/>
 
    <!-- Set gripper's configurable options: finger type, gripper accessories, etc -->
-   <xacro:property name="finger_type" value="${finger_tapped}" />
+   <xacro:property name="finger_type" value="${finger_standard}" />
    <xacro:property name="gripper_attachment" value="false"/>
    <xacro:property name="svenzva_vacuum_gripper_attachment" value="false" />
    <xacro:property name="svenzva_pen_gripper_attachment" value="true" />
@@ -435,12 +435,12 @@
   </joint>
 
   <xacro:unless value="${gripper_attachment}">
-      <xacro:revel_finger parent="link_6" finger_number="1" mesh_path="package://svenzva_description/meshes/finger_standard.STL">
+      <xacro:revel_finger parent="link_6" finger_number="1" mesh_path="package://svenzva_description/meshes/accessories/finger_${finger_type}.STL">
           <origin xyz="0 0 -0.003175" rpy="0 0 ${H_PI}" />
           <axis xyz="0 -1 0" />
       </xacro:revel_finger>
 
-      <xacro:revel_finger parent="link_6" finger_number="2" mesh_path="package://svenzva_description/meshes/finger_standard.STL">
+      <xacro:revel_finger parent="link_6" finger_number="2" mesh_path="package://svenzva_description/meshes/accessories/finger_${finger_type}.STL">
           <origin xyz="0 0 -0.003175" rpy="0 0 -${H_PI}" />
           <axis xyz="0 1 0" />
       </xacro:revel_finger>

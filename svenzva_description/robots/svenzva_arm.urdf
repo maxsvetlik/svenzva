@@ -220,7 +220,7 @@
     <visual>
       <origin rpy="0 0 1.570796" xyz="0 0 -0.003175"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_standard.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1"/>
@@ -229,7 +229,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_standard.STL"/>
       </geometry>
     </collision>
   </link>
@@ -249,7 +249,7 @@
     <visual>
       <origin rpy="0 0 -1.570796" xyz="0 0 -0.003175"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_standard.STL"/>
       </geometry>
       <material name="">
         <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1"/>
@@ -258,7 +258,7 @@
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://svenzva_description/meshes/finger_standard.STL"/>
+        <mesh filename="package://svenzva_description/meshes/accessories/finger_standard.STL"/>
       </geometry>
     </collision>
   </link>
